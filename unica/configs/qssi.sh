@@ -1,7 +1,7 @@
 # Copyright (c) 2025 Salvo Giangreco
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# UN1CA configuration file for Snapdragon devices (qssi)
+# PrismProject-Next configuration file for Snapdragon devices (qssi)
 
 # Galaxy S22 (Snapdragon) (One UI 8.0)
 SOURCE_FIRMWARE="SM-S901E/TUR/350999641234561"

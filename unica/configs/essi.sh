@@ -1,7 +1,7 @@
 # Copyright (c) 2025 Salvo Giangreco
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# UN1CA configuration file for Exynos devices (essi)
+# PrismProject-Next configuration file for Exynos devices (essi)
 
 # Galaxy S22 (Exynos) (One UI 8.0)
 SOURCE_FIRMWARE="SM-S901B/EUX/350330051234562"

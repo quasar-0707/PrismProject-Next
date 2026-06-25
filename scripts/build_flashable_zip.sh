@@ -57,10 +57,8 @@ PREPARE_SCRIPT()
         EVAL "unzip -p \"$TARGET_ZIP\" \"build_info.txt\"" || exit 1
         TARGET_BUILD_INFO="$(unzip -p "$TARGET_ZIP" "build_info.txt")"
 
-        OUTPUT_FILE="$OUT_DIR/UN1CA_"
+        OUTPUT_FILE="$OUT_DIR/PrismProject-Next_"
         OUTPUT_FILE+="$(grep "^version" <<< "$TARGET_BUILD_INFO" | cut -d "=" -f 2 -s)"
-        OUTPUT_FILE+="_"
-        OUTPUT_FILE+="$(date -d "@$(grep "^timestamp" <<< "$TARGET_BUILD_INFO" | cut -d "=" -f 2 -s)" "+%Y%m%d")"
         OUTPUT_FILE+="_"
         OUTPUT_FILE+="$(grep "^device" <<< "$TARGET_BUILD_INFO" | cut -d "=" -f 2 -s)"
         if $INCREMENTAL; then
@@ -69,11 +67,11 @@ PREPARE_SCRIPT()
             EVAL "unzip -p \"$SOURCE_ZIP\" \"build_info.txt\"" || exit 1
             SOURCE_BUILD_INFO="$(unzip -p "$SOURCE_ZIP" "build_info.txt")"
 
-            OUTPUT_FILE+="-INCREMENTAL_"
+            OUTPUT_FILE+="_INCREMENTAL_"
             OUTPUT_FILE+="$(grep "^timestamp" <<< "$SOURCE_BUILD_INFO" | cut -d "=" -f 2 -s)"
         fi
         if ! $DEBUG || $ROM_IS_OFFICIAL; then
-            OUTPUT_FILE+="-sign"
+            OUTPUT_FILE+="_signed"
         fi
         OUTPUT_FILE+=".zip"
     fi
