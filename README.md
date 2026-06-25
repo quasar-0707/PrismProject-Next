@@ -1,7 +1,7 @@
 <h1 align="center">
   <img loading="lazy" src="readme-res/banner.png"/>
 </h1>
-<p align="center">PrismProject-Next는 **국내판 삼성 갤럭시 기기를 위한 커스텀 펌웨어 프로젝트**입니다.</p>
+<p align="center">PrismProject-Next는 국내판 삼성 갤럭시 기기를 위한 커스텀 펌웨어 프로젝트입니다.</p>
 
 ## PrismProject-Next란 무엇인가요?
 PrismProject-Next는 **국내판 삼성 갤럭시 기기를 위한 커스텀 펌웨어 프로젝트**로, 구형 디바이스에서도 최적화된 최신 One UI 경험을 제공하는 것을 목표로 합니다.
