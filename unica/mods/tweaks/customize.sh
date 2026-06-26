@@ -25,3 +25,23 @@ SMALI_PATCH "system" "system/priv-app/SecSettings/SecSettings.apk" \
     'getModelName()Ljava/lang/String;' \
     'ro.product.model' \
     'ro.boot.em.model'
+
+# build.prop 트윅
+SET_PROP_IF_MISSING() {
+    local partition="$1"
+    local key="$2"
+    local value="$3"
+    
+    if [ -z "$(GET_PROP "$partition" "$key")" ]; then
+        SET_PROP "$partition" "$key" "$value"
+    fi
+}
+
+# vendor 파티션 최적화 트윅 적용
+SET_PROP_IF_MISSING "vendor" "ro.apex.updatable" "true"
+SET_PROP_IF_MISSING "vendor" "ro.incremental.enable" "yes"
+SET_PROP_IF_MISSING "vendor" "ro.hwui.use_vulkan" "true"
+SET_PROP_IF_MISSING "vendor" "debug.hwui.use_hint_manager" "true"
+SET_PROP_IF_MISSING "vendor" "persist.sys.fuse.passthrough.enable" "true"
+VALUE="$(GET_PROP "$WORK_DIR/system/system/build.prop" "ro.build.display.id")"
+SET_PROP "system" "ro.build.display.id" "PrismProject-Next $ROM_VERSION for $TARGET_CODENAME ($VALUE)"
