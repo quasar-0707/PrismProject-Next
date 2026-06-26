@@ -1,6 +1,6 @@
-# Samsung Internet Browser
+# 삼성 인터넷 브라우저
 # https://play.google.com/store/apps/details?id=com.sec.android.app.sbrowser
-LOG "- Downloading Samsung Internet app"
+LOG "- 삼성 인터넷 브라우저 앱 다운로드 중..."
 DOWNLOAD_FILE "$(GET_GALAXY_STORE_DOWNLOAD_URL "com.sec.android.app.sbrowser")" \
     "$WORK_DIR/system/system/preload/SBrowser/SBrowser.apk"
 

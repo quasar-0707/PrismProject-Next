@@ -1,4 +1,4 @@
 id=erofs
-name=EROFS support
+name=EROFS 지원
 author=salvogiangri, utkustnr
-description=Adds EROFS support.
+description=EROFS 지원을 추가합니다.

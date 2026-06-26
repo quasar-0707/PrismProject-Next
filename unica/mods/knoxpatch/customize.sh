@@ -1,11 +1,11 @@
-# Nuke WSM
+# WSM 제거
 DELETE_FROM_WORK_DIR "system" "system/etc/public.libraries-wsm.samsung.txt"
 DELETE_FROM_WORK_DIR "system" "system/lib/libhal.wsm.samsung.so"
 DELETE_FROM_WORK_DIR "system" "system/lib/vendor.samsung.hardware.security.wsm.service-V1-ndk.so"
 DELETE_FROM_WORK_DIR "system" "system/lib64/libhal.wsm.samsung.so"
 DELETE_FROM_WORK_DIR "system" "system/lib64/vendor.samsung.hardware.security.wsm.service-V1-ndk.so"
 
-# Add KnoxPatchHooks
+# KnoxPatchHooks 추가
 APPLY_PATCH "system" "system/framework/framework.jar" \
     "$MODPATH/framework.jar/0001-Introduce-KnoxPatchHooks.patch"
 SMALI_PATCH "system" "system/framework/framework.jar" \
@@ -23,31 +23,31 @@ SMALI_PATCH "system" "system/framework/framework.jar" \
 APPLY_PATCH "system" "system/framework/knoxsdk.jar" \
     "$MODPATH/knoxsdk.jar/0001-Introduce-KnoxPatchHooks.patch"
 
-# Bypass ICD verification
+# ICD 인증 우회
 SMALI_PATCH "system" "system/framework/samsungkeystoreutils.jar" \
     "smali/com/samsung/android/security/keystore/AttestParameterSpec.smali" "return" \
     'isVerifiableIntegrity()Z' 'true'
 APPLY_PATCH "system" "system/framework/services.jar" \
     "$MODPATH/services.jar/0001-Bypass-ICD-verification.patch"
 
-# Disable SAK in DarManagerService
+# DarManagerService에서 SAK 비활성화
 SMALI_PATCH "system" "system/framework/services.jar" \
     "smali/com/android/server/knox/dar/DarManagerService.smali" "return" \
     'checkDeviceIntegrity([Ljava/security/cert/Certificate;)Z' 'true'
 
-# Disable DRK in DarManagerService
+# DarManagerService에서 DRK 비활성화 
 SMALI_PATCH "system" "system/framework/services.jar" \
     "smali/com/android/server/knox/dar/DarManagerService.smali" "return" \
     'isDeviceRootKeyInstalled()Z' 'true'
 
-# Disable root checks in StorageManagerService
+# StorageManagerService에서 루트 검증 비활성화
 SMALI_PATCH "system" "system/framework/services.jar" \
     "smali/com/android/server/StorageManagerService.smali" "return" \
     'isRootedDevice()Z' 'false'
 
-# Spoof ROT/IntegrityStatus in Knox Matrix
+# Knox Matrix에서 ROT/IntegrityStatus 스푸핑
 if [ -f "$WORK_DIR/system/system/priv-app/KmxService/KmxService.apk" ]; then
-    LOG "- Downloading latest Knox Matrix app"
+    LOG "- 최신 Knox Matrix 앱 다운로드 중..."
     DOWNLOAD_FILE "$(GET_GALAXY_STORE_DOWNLOAD_URL "com.samsung.android.kmxservice")" \
         "$WORK_DIR/system/system/priv-app/KmxService/KmxService.apk"
     SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \

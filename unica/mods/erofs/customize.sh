@@ -1,5 +1,5 @@
 if [ "$TARGET_PRODUCT_SHIPPING_API_LEVEL" -ge "33" ]; then
-    LOG "\033[0;33m! Nothing to do\033[0m"
+    LOG "\033[0;33m! 아무 작업도 하지 않습니다\033[0m"
     return 0
 fi
 
@@ -16,7 +16,7 @@ PATCH_FSTAB()
         fi
         sed -E -i \
             '/^(system|vendor|product|system_ext|odm|vendor_dlkm|odm_dlkm|system_dlkm)\s+/ s/(\s+\S+\s+)\S+/\1erofs/' \
-            "$f" && LOG "- Patching $(sed -e "s|$WORK_DIR||g" -e "s|$TMP_DIR/out/ramdisk_extracted|$BOOT_FILE|g" <<< "$f")" \
+            "$f" && LOG "- $(sed -e "s|$WORK_DIR||g" -e "s|$TMP_DIR/out/ramdisk_extracted|$BOOT_FILE|g" <<< "$f") 패치 중..." \
             || true
         EVAL "uniq \"$f\" \"$TMP_DIR/tmp\" && mv -f \"$TMP_DIR/tmp\" \"$f\""
     done < <(find "$1" -type f -name "fstab.*")
@@ -24,7 +24,7 @@ PATCH_FSTAB()
 # ]
 
 if [[ "$TARGET_OS_FILE_SYSTEM_TYPE" != "erofs" ]]; then
-    _LOG "TARGET_OS_FILE_SYSTEM_TYPE is not set to erofs"
+    _LOG "TARGET_OS_FILE_SYSTEM_TYPE이 erofs로 설정되지 않았습니다."
     unset -f _LOG
     return 0
 fi
@@ -34,10 +34,10 @@ if [ -f "$WORK_DIR/kernel/vendor_boot.img" ]; then
     BOOT_FILE="vendor_boot.img"
 fi
 if [ ! -f "$WORK_DIR/kernel/$BOOT_FILE" ]; then
-    ABORT "File not found: ${WORK_DIR//$SRC_DIR\//}/kernel/$BOOT_FILE"
+    ABORT "파일이 존재하지 않습니다: ${WORK_DIR//$SRC_DIR\//}/kernel/$BOOT_FILE"
 fi
 
-LOG "- Extracting $BOOT_FILE"
+LOG "- $BOOT_FILE 압축 해제 중..."
 
 if [ -d "$TMP_DIR" ]; then
     EVAL "rm -rf \"$TMP_DIR\""
@@ -48,7 +48,7 @@ EVAL "cp -a \"$WORK_DIR/kernel/$BOOT_FILE\" \"$TMP_DIR/$BOOT_FILE\""
 MKBOOTIMG_ARGS="$(unpack_bootimg --boot_img "$TMP_DIR/$BOOT_FILE" --out "$TMP_DIR/out" --format mkbootimg 2>&1)"
 
 while IFS= read -r f; do
-    LOG "- Extracting $BOOT_FILE/$(basename "$f")"
+    LOG "- $BOOT_FILE/$(basename "$f") 압축 해제 중..."
 
     RAMDISK_FORMAT=""
     if [[ "$(READ_BYTES_AT "$f" "0" "2")" == "8b1f" ]]; then
@@ -58,7 +58,7 @@ while IFS= read -r f; do
         RAMDISK_FORMAT="lz4"
     fi
     if [ ! "$RAMDISK_FORMAT" ]; then
-        ABORT "Ramdisk format not valid\n\n$(LC_ALL=C file -b "$f")"
+        ABORT "Ramdisk 포맷이 유효하지 않습니다\n\n$(LC_ALL=C file -b "$f")"
     fi
 
     EVAL "mkdir -p \"$TMP_DIR/out/ramdisk_extracted\""
@@ -70,7 +70,7 @@ while IFS= read -r f; do
 
     PATCH_FSTAB "$TMP_DIR/out/ramdisk_extracted"
 
-    LOG "- Repacking $BOOT_FILE/$(basename "$f")"
+    LOG "- $BOOT_FILE/$(basename "$f") 압축 중..."
 
     if [[ "$RAMDISK_FORMAT" == "gz" ]]; then
         EVAL "mkbootfs \"$TMP_DIR/out/ramdisk_extracted\" | gzip > \"$f\""
@@ -83,7 +83,7 @@ done < <(find "$TMP_DIR/out" -type f -name "*ramdisk*" | LC_ALL=C sort)
 
 PATCH_FSTAB "$WORK_DIR/vendor/etc"
 
-LOG "- Repacking $BOOT_FILE"
+LOG "- $BOOT_FILE 압축 중..."
 
 if [[ "$BOOT_FILE" == "vendor_boot.img" ]]; then
     EVAL "mkbootimg $MKBOOTIMG_ARGS --vendor_boot \"$WORK_DIR/kernel/vendor_boot.img\""
