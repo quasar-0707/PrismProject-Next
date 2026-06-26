@@ -8,7 +8,7 @@ LATEST_TAG="$(
 
 KERNEL_DL_BASE="https://github.com/UN1CA/kernel_samsung_exynos2100/releases/download/$LATEST_TAG"
 
-LOG_STEP_IN "- Downloading vanilla kernel variant"
+LOG_STEP_IN "- Vanila 커널 다운로드 중..."
 if [[ -d "$TMP_DIR" ]]; then
     EVAL "rm -rf \"$TMP_DIR\""
 fi
@@ -24,7 +24,7 @@ KERNEL_ARCHIVE="$(
 DOWNLOAD_FILE "$KERNEL_DL_BASE/$KERNEL_ARCHIVE" "$TMP_DIR/$KERNEL_ARCHIVE"
 
 for i in "boot" "dtbo" "vendor_boot"; do
-    LOG "- Replacing $i.img"
+    LOG "- $i.img 교체 중..."
 
     EVAL "unzip -o \"$TMP_DIR/$KERNEL_ARCHIVE\" \"files/$i.img\" -d \"$TMP_DIR\""
 
