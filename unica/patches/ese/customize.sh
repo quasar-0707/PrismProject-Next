@@ -2,19 +2,19 @@
 # SEC_PRODUCT_FEATURE_SECURITY_CONFIG_ESE_COS_NAME
 if [[ "$SOURCE_SECURITY_CONFIG_ESE_CHIP_VENDOR" == "$TARGET_SECURITY_CONFIG_ESE_CHIP_VENDOR" ]] && \
     [[ "$SOURCE_SECURITY_CONFIG_ESE_COS_NAME" == "$TARGET_SECURITY_CONFIG_ESE_COS_NAME" ]]; then
-    LOG "\033[0;33m! Nothing to do\033[0m"
+    LOG "\033[0;33m! 아무 작업도 하지 않습니다\033[0m"
     return 0
 fi
 
 # [
 LOG_MISSING_PATCHES()
 {
-    local MESSAGE="Missing SPF patches for condition ($1: [${!1}], $2: [${!2}])"
+    local MESSAGE="다음 조건에 대한 SPF 패치가 누락되었습니다. ($1: [${!1}], $2: [${!2}])"
 
     if $DEBUG; then
         LOGW "$MESSAGE"
     else
-        ABORT "${MESSAGE}. Aborting"
+        ABORT "${MESSAGE}. 작업을 중단합니다."
     fi
 }
 # ]

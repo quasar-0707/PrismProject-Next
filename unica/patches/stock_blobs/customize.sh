@@ -37,7 +37,7 @@ else
     fi
 fi
 
-# TODO add APE/DSD extractor libs if required
+# TODO: 필요 시 APE/DSD 추출 라이브러리 추가
 if [ -f "$WORK_DIR/system/system/lib64/extractors/libsapeextractor.so" ] && \
         [ ! "$(GET_FLOATING_FEATURE_CONFIG "SEC_FLOATING_FEATURE_MMFW_SUPPORT_APE_FORMAT")" ]; then
     DELETE_FROM_WORK_DIR "system" "system/lib64/extractors/libsapeextractor.so"
@@ -58,7 +58,7 @@ ADD_TO_WORK_DIR "$TARGET_FIRMWARE" "system" "system/media/shutdown.qmg" 0 0 644 
 if [ -f "$FW_DIR/$TARGET_FIRMWARE_PATH/system/system/priv-app/SohService/SohService.apk" ]; then
     DECODE_APK "system" "system/priv-app/SohService/SohService.apk"
 
-    LOG "- Adding target BSOH blobs"
+    LOG "- 대상 BSOH 블롭 추가"
     EVAL "rm -r \"$APKTOOL_DIR/system/priv-app/SohService/SohService.apk/assets\""
     EVAL "unzip -q \"$FW_DIR/$TARGET_FIRMWARE_PATH/system/system/priv-app/SohService/SohService.apk\" \"assets/*\" -d \"$APKTOOL_DIR/system/priv-app/SohService/SohService.apk\""
 else

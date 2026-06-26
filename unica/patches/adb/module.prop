@@ -1,4 +1,4 @@
 id=adb
-name=Debug USB
+name=USB 디버깅
 author=salvogiangri
-description=Enables ADB on boot.
+description=ADB를 부팅 중에 활성화합니다.

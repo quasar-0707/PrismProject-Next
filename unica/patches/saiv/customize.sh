@@ -42,7 +42,7 @@ if [[ "$(GET_FLOATING_FEATURE_CONFIG "SEC_FLOATING_FEATURE_GALLERY_CONFIG_IMAGE_
     fi
 fi
 
-# Photo Editor "oneUI-full-release"/"genAI-full-release" flavor models
+# 포토 에디터 "oneUI-full-release"/"genAI-full-release" flavor 모델
 if [ -f "$WORK_DIR/system/system/priv-app/PhotoEditor_Full/PhotoEditor_Full.apk" ] || \
         [ -f "$WORK_DIR/system/system/priv-app/PhotoEditor_AIFull/PhotoEditor_AIFull.apk" ]; then
     if [ ! -d "$WORK_DIR/vendor/etc/saiv/image_understanding/db/hs_segmenter" ] || \

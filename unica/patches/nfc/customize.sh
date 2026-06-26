@@ -37,11 +37,11 @@ if [ "$(GET_PROP "vendor" "ro.vendor.nfc.feature.chipname")" ]; then
     fi
 fi
 
-# SEC_PRODUCT_FEATURE_NFC_CHIP_NAME:=NXP_SN100U/NXP_PN553
-# - API 35 and below: libnfc_nxpsn_jni.so/libnfc_nxppn_jni.so
-# - API 36: libnfc_nci_jni.so
+# 삼성 제품 기능 설정: NFC 칩셋 이름 := NXP_SN100U 또는 NXP_PN553
+# - API 35 이하 (Android 15 이하): libnfc_nxpsn_jni.so 또는 libnfc_nxppn_jni.so 사용
+# - API 36 (Android 16): libnfc_nci_jni.so 사용
 #
-# Use NXP_SN100U blobs for devices with legacy NXP_PN553 impl.
+# 구형 NXP_PN553 칩셋이 탑재된 기기에는 NXP_SN100U 블롭을 대체하여 사용합니다.
 if [ -f "$WORK_DIR/system/system/lib/libnfc_nci_jni.so" ]; then
     if [ ! -f "$FW_DIR/$TARGET_FIRMWARE_PATH/system/system/lib/libnfc_nci_jni.so" ] && \
             [ ! -f "$FW_DIR/$TARGET_FIRMWARE_PATH/system/system/lib64/libnfc_nxppn_jni.so" ] && \
@@ -60,7 +60,7 @@ elif [ -f "$FW_DIR/$TARGET_FIRMWARE_PATH/system/system/lib/libnfc_nci_jni.so" ];
     ADD_TO_WORK_DIR "$TARGET_FIRMWARE" "system" "system/lib/libnfc_vendor_extn.so" 0 0 644 "u:object_r:system_lib_file:s0"
 elif [ -f "$FW_DIR/$TARGET_FIRMWARE_PATH/system/system/lib64/libnfc_nxpsn_jni.so" ]; then
     # TODO
-    _LOG "Missing prebuilt blobs for NXP_SN100U NFC chip"
+    _LOG "NXP_SN100U NFC 칩셋용 prebuilt 블롭 파일이 누락되었습니다."
     return 0
 fi
 if [ -f "$WORK_DIR/system/system/lib64/libnfc_nci_jni.so" ]; then
@@ -78,14 +78,14 @@ elif [ -f "$FW_DIR/$TARGET_FIRMWARE_PATH/system/system/lib64/libnfc_nci_jni.so" 
     ADD_TO_WORK_DIR "$TARGET_FIRMWARE" "system" "system/lib64/libnfc_prop_extn.so" 0 0 644 "u:object_r:system_lib_file:s0"
     ADD_TO_WORK_DIR "$TARGET_FIRMWARE" "system" "system/lib64/libnfc_vendor_extn.so" 0 0 644 "u:object_r:system_lib_file:s0"
 elif [ -f "$FW_DIR/$TARGET_FIRMWARE_PATH/system/system/lib64/libnfc_nxpsn_jni.so" ]; then
-    # TODO
-    _LOG "Missing prebuilt blobs for NXP_SN100U NFC chip"
+    # 추후 구현 예정 (TODO)
+    _LOG "NXP_SN100U NFC 칩셋용 prebuilt 블롭 파일이 누락되었습니다."
     return 0
 fi
 
-# SEC_PRODUCT_FEATURE_NFC_CHIP_NAME:=STM_ST21
-# - API 35 and below: libnfc_st_jni.so
-# - API 36: libstnfc_nci_jni.so
+# 삼성 제품 기능 설정: NFC 칩셋 이름 := STM_ST21
+# - API 35 이하 (Android 15 이하): libnfc_st_jni.so 사용
+# - API 36 (Android 16): libstnfc_nci_jni.so 사용
 if [ -f "$WORK_DIR/system/system/lib/libstnfc_nci_jni.so" ]; then
     if [ ! -f "$FW_DIR/$TARGET_FIRMWARE_PATH/system/system/lib/libstnfc_nci_jni.so" ] && \
             [ ! -f "$FW_DIR/$TARGET_FIRMWARE_PATH/system/system/lib64/libnfc_st_jni.so" ]; then
@@ -113,8 +113,8 @@ elif [ -f "$FW_DIR/$TARGET_FIRMWARE_PATH/system/system/lib64/libnfc_st_jni.so" ]
     ADD_TO_WORK_DIR "a17xxx" "system" "system/lib64/libstnfc_nci_jni.so" 0 0 644 "u:object_r:system_lib_file:s0"
 fi
 
-# SEC_PRODUCT_FEATURE_NFC_CHIP_NAME:=SLSI
-# - Same lib name as before, check for TARGET_PLATFORM_SDK_VERSION instead
+# 삼성 제품 기능 설정: NFC 칩셋 이름 := SLSI
+# - 이전과 라이브러리 파일명은 동일하므로, TARGET_PLATFORM_SDK_VERSION 값을 대신 확인하여 분기합니다.
 if [ -f "$WORK_DIR/system/system/lib/libnfc_sec_jni.so" ]; then
     if [ ! -f "$FW_DIR/$TARGET_FIRMWARE_PATH/system/system/lib/libnfc_sec_jni.so" ] && \
             [ ! -f "$FW_DIR/$TARGET_FIRMWARE_PATH/system/system/lib64/libnfc_sec_jni.so" ] && \

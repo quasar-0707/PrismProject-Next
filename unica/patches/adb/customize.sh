@@ -1,6 +1,6 @@
 # Only enable on debug builds
 if ! $DEBUG; then
-    LOG "\033[0;33m! Non-debug build detected. Skipping\033[0m"
+    LOG "\033[0;33m! 디버그 빌드가 아닙니다. 건너뜁니다\033[0m"
     return 0
 fi
 

@@ -1,4 +1,4 @@
 id=signature
-name=Platform signature spoof
+name=플랫폼 서명 스푸핑
 author=salvogiangri, ata-kaner
-description=Allows the signing of system apps with a custom certificate.
+description=사용자 지정 인증서로 시스템 앱에 서명할 수 있게 합니다.

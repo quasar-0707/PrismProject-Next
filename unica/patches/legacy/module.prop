@@ -1,4 +1,4 @@
 id=legacy
-name=Legacy patches
+name=레거시 패치
 author=salvogiangri
-description=Applies patches for legacy devices.
+description=구형 디바이스 전용 패치를 적용합니다

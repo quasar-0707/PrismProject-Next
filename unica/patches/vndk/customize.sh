@@ -1,5 +1,5 @@
 if [[ "$SOURCE_BOARD_API_LEVEL" == "$TARGET_BOARD_API_LEVEL" ]]; then
-    LOG "\033[0;33m! Nothing to do\033[0m"
+    LOG "\033[0;33m! 아무 작업도 하지 않습니다\033[0m"
     return 0
 fi
 
@@ -22,7 +22,7 @@ ADD_TARGET_VNDK_APEX() {
             ADD_TO_WORK_DIR "gta9pxxx" "system_ext" "apex/com.android.vndk.v34.apex" 0 0 644 "u:object_r:system_file:s0"
             ;;
         *)
-            ABORT "No APEX blob available for VNDK $TARGET_BOARD_API_LEVEL"
+            ABORT "VNDK 버전 $TARGET_BOARD_API_LEVEL 에 대한 APEX 블롭이 존재하지 않습니다."
             ;;
     esac
 }
@@ -38,7 +38,7 @@ if [ "$SOURCE_BOARD_API_LEVEL" -gt "34" ] && [ "$TARGET_BOARD_API_LEVEL" -gt "34
     :
 elif [ "$SOURCE_BOARD_API_LEVEL" -gt "34" ] && [ "$TARGET_BOARD_API_LEVEL" -le "34" ]; then
     ADD_TARGET_VNDK_APEX
-    LOG "- Patching ${SYS_EXT_DIR//$WORK_DIR/}/etc/vintf/manifest.xml"
+    LOG "- ${SYS_EXT_DIR//$WORK_DIR/}/etc/vintf/manifest.xml 패치 중..."
     EVAL "sed -i \"\\\$d\" \"$SYS_EXT_DIR/etc/vintf/manifest.xml\""
     {
         echo "    <vendor-ndk>"
@@ -48,12 +48,12 @@ elif [ "$SOURCE_BOARD_API_LEVEL" -gt "34" ] && [ "$TARGET_BOARD_API_LEVEL" -le "
     } >> "$SYS_EXT_DIR/etc/vintf/manifest.xml"
 elif [ "$SOURCE_BOARD_API_LEVEL" -le "34" ] && [ "$TARGET_BOARD_API_LEVEL" -gt "34" ]; then
     DELETE_FROM_WORK_DIR "system_ext" "apex/com.android.vndk.v$SOURCE_BOARD_API_LEVEL.apex"
-    LOG "- Patching ${SYS_EXT_DIR//$WORK_DIR/}/etc/vintf/manifest.xml"
+    LOG "- ${SYS_EXT_DIR//$WORK_DIR/}/etc/vintf/manifest.xml 패치 중..."
     EVAL "sed -i -e \"/vendor-ndk/d\" -e \"/version>/d\" \"$SYS_EXT_DIR/etc/vintf/manifest.xml\""
 elif [ ! -f "$SYS_EXT_DIR/apex/com.android.vndk.v$TARGET_BOARD_API_LEVEL.apex" ]; then
     DELETE_FROM_WORK_DIR "system_ext" "apex/com.android.vndk.v$SOURCE_BOARD_API_LEVEL.apex"
     ADD_TARGET_VNDK_APEX
-    LOG "- Patching ${SYS_EXT_DIR//$WORK_DIR/}/etc/vintf/manifest.xml"
+    LOG "- ${SYS_EXT_DIR//$WORK_DIR/}/etc/vintf/manifest.xml 패치 중..."
     EVAL "sed -i \"s/version>$SOURCE_BOARD_API_LEVEL/version>$TARGET_BOARD_API_LEVEL/g\" \"$SYS_EXT_DIR/etc/vintf/manifest.xml\""
 fi
 

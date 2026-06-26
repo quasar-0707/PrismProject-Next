@@ -27,11 +27,11 @@ if ! $SOURCE_HAS_SPEN; then
         ADD_TO_WORK_DIR "b0qxxx" "system" "system/priv-app/AirReadingGlass/AirReadingGlass.apk" 0 0 644 "u:object_r:system_file:s0"
         ADD_TO_WORK_DIR "b0qxxx" "system" "system/priv-app/SmartEye/SmartEye.apk" 0 0 644 "u:object_r:system_file:s0"
     else
-        LOG "\033[0;33m! Nothing to do\033[0m"
+        LOG "\033[0;33m! 아무 작업도 하지 않습니다\033[0m"
     fi
 else
     if ! $TARGET_HAS_SPEN; then
-        ABORT "Missing patch for condition (SOURCE_HAS_SPEN: [$SOURCE_HAS_SPEN], TARGET_HAS_SPEN: [$TARGET_HAS_SPEN]). Aborting"
+        ABORT "조건에 대한 패치가 누락되었습니다. (SOURCE_HAS_SPEN: [$SOURCE_HAS_SPEN], TARGET_HAS_SPEN: [$TARGET_HAS_SPEN]) 작업을 중단합니다."
     fi
 fi
 

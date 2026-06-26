@@ -6,7 +6,7 @@ TARGET_HAS_UWB="$(test -f "$FW_DIR/$TARGET_FIRMWARE_PATH/vendor/etc/permissions/
 
 if ! $SOURCE_HAS_UWB; then
     if $TARGET_HAS_UWB; then
-        LOG "- Adding \"ro.boot.uwbcountrycode\" prop with \"ff\" in /product/etc/build.prop"
+        LOG "- \"ro.boot.uwbcountrycode\" 프롭을 \"ff\"로 /product/etc/build.prop에 추가하는 중..."
         EVAL "sed -i \"/usb.config/a ro.boot.uwbcountrycode=ff\" \"$WORK_DIR/product/etc/build.prop\""
 
         ADD_TO_WORK_DIR "b0qxxx" "product" \
@@ -42,11 +42,11 @@ if ! $SOURCE_HAS_UWB; then
         ADD_TO_WORK_DIR "b0qxxx" "system_ext" \
             "priv-app/DckTimeSyncService/DckTimeSyncService.apk" 0 0 644 "u:object_r:system_file:s0"
     else
-        LOG "\033[0;33m! Nothing to do\033[0m"
+        LOG "\033[0;33m! 아무 작업도 하지 않습니다\033[0m"
     fi
 else
     if ! $TARGET_HAS_UWB; then
-        ABORT "Missing patch for condition (SOURCE_HAS_UWB: [$SOURCE_HAS_UWB], TARGET_HAS_UWB: [$TARGET_HAS_UWB]). Aborting"
+        ABORT "조건에 맞는 패치가 누락되었습니다. (SOURCE_HAS_UWB: [$SOURCE_HAS_UWB], TARGET_HAS_UWB: [$TARGET_HAS_UWB]) 작업을 중단합니다."
     fi
 fi
 

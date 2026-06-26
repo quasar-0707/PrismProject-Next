@@ -8,18 +8,18 @@ GET_FINGERPRINT_SENSOR_TYPE()
     elif [[ "$1" == *"side"* ]]; then
         echo "side"
     else
-        ABORT "Unknown fingerprint sensor type: \"$1\". Aborting"
+        ABORT "알 수 없는 지문 센서 유형: \"$1\". 작업을 중단합니다."
     fi
 }
 
 LOG_MISSING_PATCHES()
 {
-    local MESSAGE="Missing SPF patches for condition ($1: [${!1}], $2: [${!2}])"
+    local MESSAGE="조건에 대한 SPF 패치가 누락되었습니다. ($1: [${!1}], $2: [${!2}])"
 
     if $DEBUG; then
         LOGW "$MESSAGE"
     else
-        ABORT "${MESSAGE}. Aborting"
+        ABORT "${MESSAGE}. 작업을 중단합니다."
     fi
 }
 # ]
@@ -82,7 +82,7 @@ if [[ "$SOURCE_AUDIO_CONFIG_RECORDALIVE_LIB_VERSION" != "$TARGET_AUDIO_CONFIG_RE
             "$SOURCE_AUDIO_CONFIG_RECORDALIVE_LIB_VERSION" \
             "${TARGET_AUDIO_CONFIG_RECORDALIVE_LIB_VERSION//none/}"
     else
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_AUDIO_CONFIG_RECORDALIVE_LIB_VERSION" "TARGET_AUDIO_CONFIG_RECORDALIVE_LIB_VERSION"
     fi
 fi
@@ -95,7 +95,7 @@ if $SOURCE_AUDIO_SUPPORT_ACH_RINGTONE; then
     fi
 else
     if $TARGET_AUDIO_SUPPORT_ACH_RINGTONE; then
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_AUDIO_SUPPORT_ACH_RINGTONE" "TARGET_AUDIO_SUPPORT_ACH_RINGTONE"
     fi
 fi
@@ -112,7 +112,7 @@ if $SOURCE_AUDIO_SUPPORT_DUAL_SPEAKER; then
     fi
 else
     if $TARGET_AUDIO_SUPPORT_DUAL_SPEAKER; then
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_AUDIO_SUPPORT_DUAL_SPEAKER" "TARGET_AUDIO_SUPPORT_DUAL_SPEAKER"
     fi
 fi
@@ -138,7 +138,7 @@ if $SOURCE_AUDIO_SUPPORT_VIRTUAL_VIBRATION; then
     fi
 else
     if $TARGET_AUDIO_SUPPORT_VIRTUAL_VIBRATION; then
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_AUDIO_SUPPORT_VIRTUAL_VIBRATION" "TARGET_AUDIO_SUPPORT_VIRTUAL_VIBRATION"
     fi
 fi
@@ -158,7 +158,7 @@ fi
 if ! $SOURCE_COMMON_SUPPORT_DYN_RESOLUTION_CONTROL; then
     if $TARGET_COMMON_SUPPORT_DYN_RESOLUTION_CONTROL; then
         if [[ "$(GET_FINGERPRINT_SENSOR_TYPE "$TARGET_FINGERPRINT_CONFIG_SENSOR")" == "optical" ]]; then
-            ABORT "TARGET_COMMON_SUPPORT_DYN_RESOLUTION_CONTROL is not supported on targets with an optical fingerprint sensor"
+            ABORT "광학식 지문 센서가 있는 타겟 디바이스에서는 TARGET_COMMON_SUPPORT_DYN_RESOLUTION_CONTROL이 지원되지 않습니다"
         fi
 
         SET_FLOATING_FEATURE_CONFIG "SEC_FLOATING_FEATURE_COMMON_CONFIG_DYN_RESOLUTION_CONTROL" "WQHD,FHD,HD"
@@ -228,7 +228,7 @@ if ! $SOURCE_COMMON_SUPPORT_DYN_RESOLUTION_CONTROL; then
     fi
 else
     if ! $TARGET_COMMON_SUPPORT_DYN_RESOLUTION_CONTROL; then
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_COMMON_SUPPORT_DYN_RESOLUTION_CONTROL" "TARGET_COMMON_SUPPORT_DYN_RESOLUTION_CONTROL"
     fi
 fi
@@ -240,7 +240,7 @@ if $SOURCE_COMMON_SUPPORT_EMBEDDED_SIM; then
     fi
 else
     if $TARGET_COMMON_SUPPORT_EMBEDDED_SIM; then
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_COMMON_SUPPORT_EMBEDDED_SIM" "TARGET_COMMON_SUPPORT_EMBEDDED_SIM"
     fi
 fi
@@ -261,7 +261,7 @@ if $SOURCE_COMMON_SUPPORT_HDR_EFFECT; then
     fi
 else
     if $TARGET_COMMON_SUPPORT_HDR_EFFECT; then
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_COMMON_SUPPORT_HDR_EFFECT" "TARGET_COMMON_SUPPORT_HDR_EFFECT"
     fi
 fi
@@ -305,7 +305,7 @@ if [[ "$SOURCE_FINGERPRINT_CONFIG_SENSOR" != "$TARGET_FINGERPRINT_CONFIG_SENSOR"
                     ADD_TO_WORK_DIR "r9sxxx" "system" "system/lib64/libgui.so" 0 0 644 "u:object_r:system_lib_file:s0"
                     ADD_TO_WORK_DIR "r9sxxx" "system" "system/lib64/libui.so" 0 0 644 "u:object_r:system_lib_file:s0"
                 else
-                    ABORT "Unknown SSI: $TARGET_OS_SINGLE_SYSTEM_IMAGE"
+                    ABORT "알 수 없는 SSI: $TARGET_OS_SINGLE_SYSTEM_IMAGE"
                 fi
 
                 ADD_TO_WORK_DIR "r9qxxx" "system" "system/priv-app/BiometricSetting/BiometricSetting.apk" 0 0 644 "u:object_r:system_file:s0"
@@ -371,7 +371,7 @@ if [[ "$SOURCE_FINGERPRINT_CONFIG_SENSOR" != "$TARGET_FINGERPRINT_CONFIG_SENSOR"
                     "smali/com/android/keyguard/KeyguardSecUpdateMonitorImpl\$\$ExternalSyntheticLambda42.smali" "remove"
 
                 if [[ "$TARGET_FINGERPRINT_CONFIG_SENSOR" == *"navi=1"* ]]; then
-                    LOG "- Enabling FP_FEATURE_GESTURE_MODE:Z in /system/system/framework/services.jar/smali/com/android/server/biometrics/SemBiometricFeature.smali"
+                    LOG "- /system/system/framework/services.jar/smali/com/android/server/biometrics/SemBiometricFeature.smali 에서 FP_FEATURE_GESTURE_MODE:Z 활성화"
                     SMALI_PATCH "system" "system/framework/services.jar" \
                         "smali/com/android/server/biometrics/SemBiometricFeature.smali" "replace" \
                         "<clinit>()V" \
@@ -380,7 +380,7 @@ if [[ "$SOURCE_FINGERPRINT_CONFIG_SENSOR" != "$TARGET_FINGERPRINT_CONFIG_SENSOR"
                         > /dev/null
                 fi
                 if [[ "$TARGET_FINGERPRINT_CONFIG_SENSOR" == *"swipe_enroll"* ]]; then
-                    LOG "- Enabling FP_FEATURE_SWIPE_ENROLL:Z in /system/system/framework/services.jar/smali/com/android/server/biometrics/SemBiometricFeature.smali"
+                    LOG "- /system/system/framework/services.jar/smali/com/android/server/biometrics/SemBiometricFeature.smali 에서 FP_FEATURE_SWIPE_ENROLL:Z 활성화"
                     SMALI_PATCH "system" "system/framework/services.jar" \
                         "smali/com/android/server/biometrics/SemBiometricFeature.smali" "replace" \
                         "<clinit>()V" \
@@ -389,7 +389,7 @@ if [[ "$SOURCE_FINGERPRINT_CONFIG_SENSOR" != "$TARGET_FINGERPRINT_CONFIG_SENSOR"
                         > /dev/null
                 fi
                 if [[ "$TARGET_FINGERPRINT_CONFIG_SENSOR" == *"wof_off"* ]]; then
-                    LOG "- Enabling FP_FEATURE_WOF_OPTION_DEFAULT_OFF:Z in /system/system/framework/services.jar/smali/com/android/server/biometrics/SemBiometricFeature.smali"
+                    LOG "- /system/system/framework/services.jar/smali/com/android/server/biometrics/SemBiometricFeature.smali 에서 FP_FEATURE_WOF_OPTION_DEFAULT_OFF:Z 활성화"
                     SMALI_PATCH "system" "system/framework/services.jar" \
                         "smali/com/android/server/biometrics/SemBiometricFeature.smali" "replace" \
                         "<clinit>()V" \
@@ -398,11 +398,11 @@ if [[ "$SOURCE_FINGERPRINT_CONFIG_SENSOR" != "$TARGET_FINGERPRINT_CONFIG_SENSOR"
                         > /dev/null
                 fi
             elif [[ "$(GET_FINGERPRINT_SENSOR_TYPE "$TARGET_FINGERPRINT_CONFIG_SENSOR")" != "ultrasonic" ]]; then
-                # TODO handle this condition
+                # TODO: 이 조건 처리
                 LOG_MISSING_PATCHES "SOURCE_FINGERPRINT_CONFIG_SENSOR" "TARGET_FINGERPRINT_CONFIG_SENSOR"
             fi
         else
-            # TODO handle this condition
+            # TODO: 이 조건 처리
             LOG_MISSING_PATCHES "SOURCE_FINGERPRINT_CONFIG_SENSOR" "TARGET_FINGERPRINT_CONFIG_SENSOR"
         fi
     fi
@@ -440,7 +440,7 @@ fi
 # SEC_PRODUCT_FEATURE_LCD_CONFIG_SEAMLESS_BRT
 # SEC_PRODUCT_FEATURE_LCD_CONFIG_SEAMLESS_LUX
 #
-# Apply before SEC_PRODUCT_FEATURE_LCD_CONFIG_HFR_* to avoid conflicts
+# 충돌을 피하기 위해 SEC_PRODUCT_FEATURE_LCD_CONFIG_HFR_* 전에 적용
 if [[ "$SOURCE_LCD_CONFIG_SEAMLESS_BRT" != "$TARGET_LCD_CONFIG_SEAMLESS_BRT" ]] || \
         [[ "$SOURCE_LCD_CONFIG_SEAMLESS_LUX" != "$TARGET_LCD_CONFIG_SEAMLESS_LUX" ]]; then
     if [[ "$SOURCE_LCD_CONFIG_SEAMLESS_BRT" != "none" ]] && [[ "$SOURCE_LCD_CONFIG_SEAMLESS_LUX" != "none" ]] && \
@@ -470,7 +470,7 @@ if [[ "$SOURCE_LCD_CONFIG_SEAMLESS_BRT" != "$TARGET_LCD_CONFIG_SEAMLESS_BRT" ]] 
             "$SOURCE_LCD_CONFIG_SEAMLESS_LUX" \
             "$TARGET_LCD_CONFIG_SEAMLESS_LUX"
     else
-        # TODO handle these conditions
+        # TODO: 이 조건들 처리
         LOG_MISSING_PATCHES "SOURCE_LCD_CONFIG_SEAMLESS_BRT" "TARGET_LCD_CONFIG_SEAMLESS_BRT" || true
         LOG_MISSING_PATCHES "SOURCE_LCD_CONFIG_SEAMLESS_LUX" "TARGET_LCD_CONFIG_SEAMLESS_LUX"
     fi
@@ -596,7 +596,7 @@ if [[ "$SOURCE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE" != "$TARGET_LCD_CONFIG_HFR
             "$SOURCE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE" \
             "${TARGET_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE//none/}"
     else
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE" "TARGET_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE"
     fi
 fi
@@ -621,7 +621,7 @@ if [[ "$SOURCE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE_NS" != "$TARGET_LCD_CONFIG_
             "$SOURCE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE_NS" \
             "${TARGET_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE_NS//none/}"
     else
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE_NS" "TARGET_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE_NS"
     fi
 fi
@@ -648,7 +648,7 @@ elif $SOURCE_LCD_SUPPORT_MDNIE_HW && [[ "$SOURCE_LCD_CONFIG_COLOR_WEAKNESS_SOLUT
 else
     if $TARGET_LCD_SUPPORT_MDNIE_HW || \
             [[ "$SOURCE_LCD_CONFIG_COLOR_WEAKNESS_SOLUTION" != "$TARGET_LCD_CONFIG_COLOR_WEAKNESS_SOLUTION" ]]; then
-        # TODO handle these conditions
+        # TODO: 이 조건들 처리
         LOG_MISSING_PATCHES "SOURCE_LCD_SUPPORT_MDNIE_HW" "TARGET_LCD_SUPPORT_MDNIE_HW" || true
         LOG_MISSING_PATCHES "SOURCE_LCD_CONFIG_COLOR_WEAKNESS_SOLUTION" "TARGET_LCD_CONFIG_COLOR_WEAKNESS_SOLUTION"
     fi
@@ -675,7 +675,7 @@ if [[ "$SOURCE_RIL_FEATURES" != "$TARGET_RIL_FEATURES" ]]; then
             "$SOURCE_RIL_FEATURES" \
             "${TARGET_RIL_FEATURES//none/}"
     else
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_RIL_FEATURES" "TARGET_RIL_FEATURES"
     fi
 fi
@@ -690,7 +690,7 @@ if [[ "$SOURCE_RIL_SIM_CONFIG_MULTISIM_TRAYCOUNT" != "$TARGET_RIL_SIM_CONFIG_MUL
             "false"
     elif [[ "$SOURCE_RIL_SIM_CONFIG_MULTISIM_TRAYCOUNT" != "1" ]] && \
             [[ "$TARGET_RIL_SIM_CONFIG_MULTISIM_TRAYCOUNT" == "1" ]]; then
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_RIL_SIM_CONFIG_MULTISIM_TRAYCOUNT" "TARGET_RIL_SIM_CONFIG_MULTISIM_TRAYCOUNT"
     fi
 fi
@@ -703,7 +703,7 @@ if $SOURCE_RIL_SUPPORT_WATERPROOF_SIM_TRAY_MSG; then
     fi
 else
     if $TARGET_RIL_SUPPORT_WATERPROOF_SIM_TRAY_MSG; then
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_RIL_SUPPORT_WATERPROOF_SIM_TRAY_MSG" "TARGET_RIL_SUPPORT_WATERPROOF_SIM_TRAY_MSG"
     fi
 fi
@@ -748,7 +748,7 @@ if [[ "$SOURCE_WLAN_CONFIG_CPU_CSTATE_DISABLE_THRESHOLD" != "$TARGET_WLAN_CONFIG
             "$TARGET_WLAN_CONFIG_L1SS_DISABLE_THRESHOLD" | \
             sed "s/CONFIG_L1SS_DISABLE_THRESHOLD/$SOURCE_WLAN_CONFIG_L1SS_DISABLE_THRESHOLD/g"
     else
-        # TODO handle these conditions
+        # TODO: 이 조건들 처리
         LOG_MISSING_PATCHES "SOURCE_WLAN_CONFIG_CPU_CSTATE_DISABLE_THRESHOLD" "TARGET_WLAN_CONFIG_CPU_CSTATE_DISABLE_THRESHOLD" || true
         LOG_MISSING_PATCHES "SOURCE_WLAN_CONFIG_DATA_ACTIVITY_AFFINITY_BOOSTER_THRESHOLD" "TARGET_WLAN_CONFIG_DATA_ACTIVITY_AFFINITY_BOOSTER_THRESHOLD" || true
         LOG_MISSING_PATCHES "SOURCE_WLAN_CONFIG_L1SS_DISABLE_THRESHOLD" "TARGET_WLAN_CONFIG_L1SS_DISABLE_THRESHOLD"
@@ -795,13 +795,13 @@ if $SOURCE_WLAN_SUPPORT_80211AX; then
             fi
         else
             if ! $TARGET_WLAN_SUPPORT_80211AX_6GHZ; then
-                # TODO handle this condition
+                # TODO: 이 조건 처리
                 LOG_MISSING_PATCHES "SOURCE_WLAN_SUPPORT_80211AX_6GHZ" "TARGET_WLAN_SUPPORT_80211AX_6GHZ"
             fi
         fi
     else
         if $TARGET_WLAN_SUPPORT_80211AX_6GHZ; then
-            ABORT "TARGET_WLAN_SUPPORT_80211AX is required by TARGET_WLAN_SUPPORT_80211AX_6GHZ"
+            ABORT "TARGET_WLAN_SUPPORT_80211AX_6GHZ에 TARGET_WLAN_SUPPORT_80211AX가 필요합니다"
         fi
         if ! $SOURCE_WLAN_SUPPORT_80211AX_6GHZ; then
             APPLY_PATCH "system" "system/framework/semwifi-service.jar" \
@@ -811,17 +811,17 @@ if $SOURCE_WLAN_SUPPORT_80211AX; then
             APPLY_PATCH "system_ext" "priv-app/SystemUI/SystemUI.apk" \
                 "$MODPATH/wifi/80211ax/SystemUI.apk/0001-Disable-80211AX-support.patch"
         else
-            # TODO handle these conditions
+            # TODO: 이 조건들 처리
             LOG_MISSING_PATCHES "SOURCE_WLAN_SUPPORT_80211AX" "TARGET_WLAN_SUPPORT_80211AX" || true
             LOG_MISSING_PATCHES "SOURCE_WLAN_SUPPORT_80211AX_6GHZ" "TARGET_WLAN_SUPPORT_80211AX_6GHZ"
         fi
     fi
 else
     if $SOURCE_WLAN_SUPPORT_80211AX_6GHZ; then
-        ABORT "SOURCE_WLAN_SUPPORT_80211AX is required by SOURCE_WLAN_SUPPORT_80211AX_6GHZ"
+        ABORT "SOURCE_WLAN_SUPPORT_80211AX_6GHZ에 SOURCE_WLAN_SUPPORT_80211AX가 필요합니다"
     fi
     if $TARGET_WLAN_SUPPORT_80211AX; then
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_WLAN_SUPPORT_80211AX" "TARGET_WLAN_SUPPORT_80211AX"
     fi
     if $TARGET_WLAN_SUPPORT_80211AX_6GHZ; then
@@ -894,7 +894,7 @@ if [[ "$SOURCE_WLAN_CONFIG_CONNECTION_PERSONALIZATION" != "$TARGET_WLAN_CONFIG_C
                 "$MODPATH/wifi/ape_service/SecSettings.apk/0001-Disable-APE_SERVICE-support.patch"
         fi
     else
-        # TODO handle these conditions
+        # TODO: 이 조건들 처리
         LOG_MISSING_PATCHES "SOURCE_WLAN_CONFIG_CONNECTION_PERSONALIZATION" "TARGET_WLAN_CONFIG_CONNECTION_PERSONALIZATION" || true
         LOG_MISSING_PATCHES "SOURCE_WLAN_SUPPORT_APE_SERVICE" "TARGET_WLAN_SUPPORT_APE_SERVICE"
     fi
@@ -925,7 +925,7 @@ if ! $SOURCE_WLAN_SUPPORT_MOBILEAP_5G_BASEDON_COUNTRY; then
     fi
 else
     if ! $TARGET_WLAN_SUPPORT_MOBILEAP_5G_BASEDON_COUNTRY; then
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_WLAN_SUPPORT_MOBILEAP_5G_BASEDON_COUNTRY" "TARGET_WLAN_SUPPORT_MOBILEAP_5G_BASEDON_COUNTRY"
     fi
 fi
@@ -984,7 +984,7 @@ if ! $SOURCE_WLAN_SUPPORT_MOBILEAP_DUALAP; then
     fi
 else
     if ! $TARGET_WLAN_SUPPORT_MOBILEAP_DUALAP; then
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_WLAN_SUPPORT_MOBILEAP_DUALAP" "TARGET_WLAN_SUPPORT_MOBILEAP_DUALAP"
     fi
 fi
@@ -1005,7 +1005,7 @@ if ! $SOURCE_WLAN_SUPPORT_MOBILEAP_OWE; then
     fi
 else
     if ! $TARGET_WLAN_SUPPORT_MOBILEAP_OWE; then
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_WLAN_SUPPORT_MOBILEAP_OWE" "TARGET_WLAN_SUPPORT_MOBILEAP_OWE"
     fi
 fi
@@ -1026,7 +1026,7 @@ if $SOURCE_WLAN_SUPPORT_MOBILEAP_POWER_SAVEMODE; then
     fi
 else
     if $TARGET_WLAN_SUPPORT_MOBILEAP_POWER_SAVEMODE; then
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_WLAN_SUPPORT_MOBILEAP_POWER_SAVEMODE" "TARGET_WLAN_SUPPORT_MOBILEAP_POWER_SAVEMODE"
     fi
 fi
@@ -1048,7 +1048,7 @@ if $SOURCE_WLAN_SUPPORT_MOBILEAP_PRIORITIZE_TRAFFIC; then
     fi
 else
     if $TARGET_WLAN_SUPPORT_MOBILEAP_PRIORITIZE_TRAFFIC; then
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_WLAN_SUPPORT_MOBILEAP_PRIORITIZE_TRAFFIC" "TARGET_WLAN_SUPPORT_MOBILEAP_PRIORITIZE_TRAFFIC"
     fi
 fi
@@ -1056,7 +1056,7 @@ fi
 # SEC_PRODUCT_FEATURE_WLAN_SEC_SUPPORT_MOBILEAP_WIFI_CONCURRENCY
 if ! $SOURCE_WLAN_SUPPORT_MOBILEAP_WIFI_CONCURRENCY; then
     if $TARGET_WLAN_SUPPORT_MOBILEAP_WIFI_CONCURRENCY; then
-        # Check for target flag instead as we've already took care of this SPF above
+        # 위의 SPF는 이미 처리했으므로 대상 플래그를 확인합니다
         if ! $TARGET_WLAN_SUPPORT_MOBILEAP_POWER_SAVEMODE; then
             APPLY_PATCH "system" "system/framework/semwifi-service.jar" \
                 "$MODPATH/wifi/power_savemode/semwifi-service.jar/0002-Enable-MOBILEAP_WIFI_CONCURRENCY-support.patch"
@@ -1071,7 +1071,7 @@ if ! $SOURCE_WLAN_SUPPORT_MOBILEAP_WIFI_CONCURRENCY; then
     fi
 else
     if ! $TARGET_WLAN_SUPPORT_MOBILEAP_WIFI_CONCURRENCY; then
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_WLAN_SUPPORT_MOBILEAP_WIFI_CONCURRENCY" "TARGET_WLAN_SUPPORT_MOBILEAP_WIFI_CONCURRENCY"
     fi
 fi
@@ -1079,7 +1079,7 @@ fi
 # SEC_PRODUCT_FEATURE_WLAN_SUPPORT_MOBILEAP_WIFISHARING_LITE
 if ! $SOURCE_WLAN_SUPPORT_MOBILEAP_WIFISHARING_LITE; then
     if $TARGET_WLAN_SUPPORT_MOBILEAP_WIFISHARING_LITE; then
-        # Check for target flag instead as we've already took care of this SPF above
+        # 위의 SPF는 이미 처리했으므로 대상 플래그를 확인합니다
         if ! $TARGET_WLAN_SUPPORT_MOBILEAP_POWER_SAVEMODE; then
             APPLY_PATCH "system" "system/framework/semwifi-service.jar" \
                 "$MODPATH/wifi/power_savemode/semwifi-service.jar/0003-Enable-MOBILEAP_WIFISHARING_LITE-support.patch"
@@ -1094,7 +1094,7 @@ if ! $SOURCE_WLAN_SUPPORT_MOBILEAP_WIFISHARING_LITE; then
     fi
 else
     if ! $TARGET_WLAN_SUPPORT_MOBILEAP_WIFISHARING_LITE; then
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_WLAN_SUPPORT_MOBILEAP_WIFISHARING_LITE" "TARGET_WLAN_SUPPORT_MOBILEAP_WIFISHARING_LITE"
     fi
 fi
@@ -1116,10 +1116,10 @@ if $SOURCE_WLAN_SUPPORT_TWT_CONTROL && $SOURCE_WLAN_SUPPORT_LOWLATENCY; then
     fi
 else
     if ! $SOURCE_WLAN_SUPPORT_TWT_CONTROL && $TARGET_WLAN_SUPPORT_TWT_CONTROL; then
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_WLAN_SUPPORT_TWT_CONTROL" "TARGET_WLAN_SUPPORT_TWT_CONTROL"
     elif ! $SOURCE_WLAN_SUPPORT_LOWLATENCY && $TARGET_WLAN_SUPPORT_LOWLATENCY; then
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_WLAN_SUPPORT_LOWLATENCY" "TARGET_WLAN_SUPPORT_LOWLATENCY"
     fi
 fi
@@ -1132,7 +1132,7 @@ if $SOURCE_WLAN_SUPPORT_SWITCH_FOR_INDIVIDUAL_APPS; then
     fi
 else
     if $TARGET_WLAN_SUPPORT_SWITCH_FOR_INDIVIDUAL_APPS; then
-        # TODO handle this condition
+        # TODO: 이 조건 처리
         LOG_MISSING_PATCHES "SOURCE_WLAN_SUPPORT_SWITCH_FOR_INDIVIDUAL_APPS" "TARGET_WLAN_SUPPORT_SWITCH_FOR_INDIVIDUAL_APPS"
     fi
 fi

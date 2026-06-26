@@ -1,8 +1,8 @@
 if [ ! -f "$WORK_DIR/kernel/boot.img" ]; then
-    ABORT "File not found: ${WORK_DIR//$SRC_DIR\//}/kernel/boot.img"
+    ABORT "파일이 존재하지 않습니다: ${WORK_DIR//$SRC_DIR\//}/kernel/boot.img"
 fi
 
-LOG "- Extracting boot.img"
+LOG "- boot.img 압축 해제 중..."
 
 if [ -d "$TMP_DIR" ]; then
     EVAL "rm -rf \"$TMP_DIR\""
@@ -13,7 +13,7 @@ EVAL "cp -a \"$WORK_DIR/kernel/boot.img\" \"$TMP_DIR/boot.img\""
 MKBOOTIMG_ARGS="$(unpack_bootimg --boot_img "$TMP_DIR/boot.img" --out "$TMP_DIR/out" --format mkbootimg 2>&1)"
 
 if [ ! -f "$TMP_DIR/out/kernel" ]; then
-    ABORT "Failed to extract boot.img\n\n$MKBOOTIMG_ARGS"
+    ABORT "boot.img를 압축 해제하는 데 실패했습니다.\n\n$MKBOOTIMG_ARGS"
 fi
 
 GZ_COMPRESSED=false
@@ -21,42 +21,42 @@ if [[ "$(READ_BYTES_AT "$TMP_DIR/out/kernel" "0" "2")" == "8b1f" ]]; then
     GZ_COMPRESSED=true
 fi
 if $GZ_COMPRESSED; then
-    LOG "- Decompressing kernel image"
+    LOG "- 커널 이미지 압축 해제 중..."
     EVAL "cat \"$TMP_DIR/out/kernel\" | gzip -d > \"$TMP_DIR/out/tmp\" && mv -f \"$TMP_DIR/out/tmp\" \"$TMP_DIR/out/kernel\""
 fi
 
 if [[ "$(LC_ALL=C file -b "$TMP_DIR/out/kernel")" != "Linux kernel ARM64"* ]]; then
-    ABORT "Kernel image not valid\n\n$(LC_ALL=C file -b "$TMP_DIR/out/kernel")"
+    ABORT "커널 이미지가 유효하지 않습니다.\n\n$(LC_ALL=C file -b "$TMP_DIR/out/kernel")"
 fi
 
 PATCHED=false
 
 PROCA_CONFIG_ADDR="$(READ_BYTES_AT "$TMP_DIR/out/kernel" "40" "4")"
 if [[ "$PROCA_CONFIG_ADDR" != "00000000" ]] && [[ "$PROCA_CONFIG_ADDR" != "ecefecef" ]]; then
-    LOG "- Patching PROCA offset in kernel image header"
+    LOG "- 커널 이미지 헤더에서 PROCA 오프셋을 패치하는 중..."
     EVAL "printf \"\\xef\\xec\\xef\\xec\" | dd of=\"$TMP_DIR/out/kernel\" bs=1 seek=40 count=4 conv=notrunc"
     PATCHED=true
 fi
 
 if xxd -p -c 0 "$TMP_DIR/out/kernel" | grep -q "70726f63615f636f6e66696700"; then
-    LOG "- Patching \"70726f63615f636f6e66696700\" to \"6675636b5f755f73616d6d7900\" in kernel image"
+    LOG "- \"70726f63615f636f6e66696700\"을 \"6675636b5f755f73616d6d7900\"으로 패치하는 중..."
     HEX_PATCH "$TMP_DIR/out/kernel" "70726f63615f636f6e66696700" "6675636b5f755f73616d6d7900" > /dev/null
     PATCHED=true
 fi
 
 if ! $PATCHED; then
-    LOG "\033[0;33m! Nothing to do\033[0m"
+    LOG "\033[0;33m! 아무 작업도 하지 않습니다\033[0m"
     EVAL "rm -rf \"$TMP_DIR\""
     unset MKBOOTIMG_ARGS GZ_COMPRESSED PATCHED PROCA_CONFIG_ADDR
     return 0
 fi
 
 if $GZ_COMPRESSED; then
-    LOG "- Compressing kernel image"
+    LOG "- 커널 이미지 압축 중..."
     EVAL "cat \"$TMP_DIR/out/kernel\" | gzip -n -f -9 > \"$TMP_DIR/out/tmp\" && mv -f \"$TMP_DIR/out/tmp\" \"$TMP_DIR/out/kernel\""
 fi
 
-LOG "- Repacking boot.img"
+LOG "- boot.img 압축 중..."
 
 EVAL "mkbootimg $MKBOOTIMG_ARGS -o \"$TMP_DIR/new-boot.img\""
 echo -n "SEANDROIDENFORCE" >> "$TMP_DIR/new-boot.img"

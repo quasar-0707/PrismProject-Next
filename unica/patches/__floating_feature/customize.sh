@@ -1,8 +1,8 @@
-# UN1CA floating_feature patch
-# - Add deprecated features in the $DEPRECATED variable
-# - Add features to ignore in the $BLACKLIST variable
-# - Add default values for missing features in the $FALLBACK variable
-# - Use target/$TARGET_CODENAME/sff.sh file to provide custom entries
+# UN1CA floating_feature 패치
+# - 더 이상 사용되지 않는 기능은 $DEPRECATED 변수에 추가하세요.
+# - 무시할 기능은 $BLACKLIST 변수에 추가하세요.
+# - 누락된 기능의 기본값은 $FALLBACK 변수에 추가하세요.
+# - 사용자 정의 항목을 제공하려면 target/$TARGET_CODENAME/sff.sh 파일을 사용하세요.
 
 DEPRECATED="
 SEC_FLOATING_FEATURE_AUDIO_CONFIG_FMRADIO_EXTERNAL_DEVICE
@@ -144,14 +144,14 @@ APPLY_TARGET_FEATURE()
     local SOURCE_VALUE
     local TARGET_VALUE
 
-    # Step 1: iterate through work_dir floating_feature.xml
+    # 1단계: 작업 디렉터리의 floating_feature.xml 분석 및 순회
     while IFS= read -r l; do
         if [ ! "$l" ] || [[ "$l" == *"xml"* ]] || [[ "$l" == *"SecFloatingFeatureSet"* ]]; then
             continue
         fi
 
         if [[ "$l" != "    <SEC_FLOATING_FEATURE_"*"</SEC_FLOATING_FEATURE_"*">" ]]; then
-            ABORT "Malformed string in ${SOURCE_FILE//$SRC_DIR\//}: \"$l\""
+            ABORT "다음 파일에서 잘못된 문자열을 발견했습니다: ${SOURCE_FILE//$SRC_DIR\//}: \"$l\""
         fi
 
         FEATURE="$(awk -F '<|>' '{print $2}' <<< "$l")"
@@ -174,14 +174,14 @@ APPLY_TARGET_FEATURE()
         fi
     done < "$SOURCE_FILE"
 
-    # Step 2: iterate through target floating_feature.xml
+    # 2단계: 타겟 기기의 floating_feature.xml 분석 및 순회
     while IFS= read -r l; do
         if [ ! "$l" ] || [[ "$l" == *"xml"* ]] || [[ "$l" == *"SecFloatingFeatureSet"* ]]; then
             continue
         fi
 
         if [[ "$l" != "    <SEC_FLOATING_FEATURE_"*"</SEC_FLOATING_FEATURE_"*">" ]]; then
-            ABORT "Malformed string in ${TARGET_FILE//$SRC_DIR\//}: \"$l\""
+            ABORT "다음 파일에서 잘못된 문자열을 발견했습니다: ${TARGET_FILE//$SRC_DIR\//}: \"$l\""
         fi
 
         FEATURE="$(awk -F '<|>' '{print $2}' <<< "$l")"
@@ -210,24 +210,24 @@ APPLY_CUSTOM_FEATURE()
                 SET_FLOATING_FEATURE_CONFIG "$(cut -d "=" -f 1 <<< "$l")" "$(cut -d "=" -f 2- <<< "$l")"
             fi
         else
-            ABORT "Malformed string in ${1//$SRC_DIR\//}: \"$l\""
+            ABORT "다음 파일에서 잘못된 문자열을 발견했습니다: ${1//$SRC_DIR\//}: \"$l\""
         fi
     done < "$1"
 }
 # ]
 
-LOG_STEP_IN "- Applying target floating feature config"
+LOG_STEP_IN "- 대상 기기의 floating_feature.xml 설정 적용 중"
 APPLY_TARGET_FEATURE
 LOG_STEP_OUT
 
 if [ -f "$SRC_DIR/platform/$TARGET_PLATFORM/sff.sh" ]; then
-    LOG_STEP_IN "- Applying custom platform floating feature config"
+    LOG_STEP_IN "- 사용자 정의 플랫폼 floating_feature.xml 설정 적용 중"
     APPLY_CUSTOM_FEATURE "$SRC_DIR/platform/$TARGET_PLATFORM/sff.sh"
     LOG_STEP_OUT
 fi
 
 if [ -f "$SRC_DIR/target/$TARGET_CODENAME/sff.sh" ]; then
-    LOG_STEP_IN "- Applying custom device floating feature config"
+    LOG_STEP_IN "- 사용자 정의 타겟 floating_feature.xml 설정 적용 중"
     APPLY_CUSTOM_FEATURE "$SRC_DIR/target/$TARGET_CODENAME/sff.sh"
     LOG_STEP_OUT
 fi
