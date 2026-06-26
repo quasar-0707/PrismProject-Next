@@ -24,11 +24,11 @@ PREPARE_SCRIPT()
         elif [[ "$1" == "--output" ]] || [[ "$1" == "-o" ]]; then
             shift; OUTPUT_FILE="$1"
             if [[ "$OUTPUT_FILE" != *".zip" ]]; then
-                LOGE "Output file name must have \".zip\" extension"
+                LOGE "출력 파일은 반드시 \".zip\" 확장자여야 합니다."
                 exit 1
             fi
         else
-            LOGE "Unknown option: $1"
+            LOGE "알 수 없는 옵션입니다: $1"
             exit 1
         fi
 
@@ -40,13 +40,13 @@ PREPARE_SCRIPT()
         PRINT_USAGE
         exit 1
     elif [ ! -f "$TARGET_ZIP" ]; then
-        LOGE "File not found: ${TARGET_ZIP//$SRC_DIR\//}"
+        LOGE "파일이 존재하지 않습니다: ${TARGET_ZIP//$SRC_DIR\//}"
         exit 1
     fi
 
     if [ "$SOURCE_ZIP" ]; then
         if [ ! -f "$SOURCE_ZIP" ]; then
-            LOGE "File not found: ${SOURCE_ZIP//$SRC_DIR\//}"
+            LOGE "파일이 존재하지 않습니다: ${SOURCE_ZIP//$SRC_DIR\//}"
             exit 1
         fi
     fi
@@ -79,9 +79,9 @@ PREPARE_SCRIPT()
 
 PRINT_USAGE()
 {
-    echo "Usage: build_flashable_zip [options] <file>" >&2
-    echo " -i, --incremental : Generate an incremental zip using the given target-files zip as source" >&2
-    echo " -o, --output : Specify the output zip path, defaults to $OUT_DIR" >&2
+    echo "사용 예제: build_flashable_zip [옵션] <파일>" >&2
+    echo " -i, --incremental : 지정된 target-files zip을 소스로 사용하여 incremental zip을 생성합니다." >&2
+    echo " -o, --output      : 출력될 zip 파일의 경로를 지정합니다. 기본값은 $OUT_DIR 입니다." >&2
 }
 # ]
 

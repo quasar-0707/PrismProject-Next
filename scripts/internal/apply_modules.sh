@@ -14,7 +14,7 @@ APPLY_MODULE()
     local MODAUTH
 
     if [ ! -d "$MODPATH" ]; then
-        LOGE "Folder not found: ${MODPATH//$SRC_DIR\//}"
+        LOGE "폴더가 존재하지 않습니다: ${MODPATH//$SRC_DIR\//}"
         return 1
     fi
 
@@ -23,7 +23,7 @@ APPLY_MODULE()
     fi
 
     if [ ! -f "$MODPATH/module.prop" ]; then
-        LOGE "File not found: ${MODPATH//$SRC_DIR\//}/module.prop"
+        LOGE "파일이 존재하지 않습니다: ${MODPATH//$SRC_DIR\//}/module.prop"
         return 1
     elif [ -f "$MODPATH/disable" ]; then
         return 0
@@ -32,7 +32,7 @@ APPLY_MODULE()
         MODAUTH="$(grep "^author" "$MODPATH/module.prop" | sed "s/author=//" | sed "s/, /, @/g")"
     fi
 
-    LOG_STEP_IN "- Processing \"$MODNAME\" by @$MODAUTH"
+    LOG_STEP_IN "- \"$MODNAME\" 처리 중... (제작자: @$MODAUTH)"
 
     if ! grep -q "^SKIPUNZIP=1$" "$MODPATH/customize.sh" 2> /dev/null; then
         if [ -d "$MODPATH/odm" ]; then
@@ -78,7 +78,7 @@ APPLY_SMALI_PATCHES()
     PARTITION="$(cut -d "/" -f 1 -s <<< "$TARGET")"
 
     if ! IS_VALID_PARTITION_NAME "$PARTITION"; then
-        LOGE "\"$PARTITION\" is not a valid partition name"
+        LOGE "\"$PARTITION\"은(는) 올바른 파티션 이름이 아닙니다."
         return 1
     fi
 
@@ -115,7 +115,7 @@ READ_AND_APPLY_PROPS()
                     SET_PROP "$PARTITION" "$(cut -d "=" -f 1 -s <<< "$l")" "$(cut -d "=" -f 2- -s <<< "$l")"
                 fi
             else
-                LOGE "Malformed string in $f: \"$l\""
+                LOGE "$f 파일에 잘못된 형식의 문자열이 있습니다: \"$l\""
                 return 1
             fi
         done < "$f"
@@ -126,10 +126,10 @@ READ_AND_APPLY_PROPS()
 #]
 
 if [ "$#" != "1" ]; then
-    echo "Usage: apply_modules <folder>" >&2
+    echo "사용 예제: apply_modules <폴더 경로>" >&2
     exit 1
 elif [ ! -d "$1" ]; then
-    LOGE "Folder not found: ${1//$SRC_DIR\//}"
+    LOGE "폴더가 존재하지 않습니다: ${1//$SRC_DIR\//}"
     exit 1
 fi
 

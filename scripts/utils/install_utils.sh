@@ -20,7 +20,7 @@ _GET_PARTITION_SIZE()
 # ]
 
 # GET_DEVICE_FROM_MOUNTPOINT <mountpoint>
-# Returns the device path for the supplied mountpoint.
+# 제공된 마운트 포인트에 대한 디바이스 경로를 반환합니다.
 GET_DEVICE_FROM_MOUNTPOINT()
 {
     _CHECK_NON_EMPTY_PARAM "MOUNTPOINT" "$1" || return 1
@@ -36,7 +36,7 @@ GET_DEVICE_FROM_MOUNTPOINT()
         fi
     fi
     if [ ! -f "$FSTAB_FILE" ]; then
-        LOGE "File not found: target/$TARGET_CODENAME/installer/recovery.fstab"
+        LOGE "파일이 존재하지 않습니다: target/$TARGET_CODENAME/installer/recovery.fstab"
         exit 1
     fi
 
@@ -55,7 +55,7 @@ GET_DEVICE_FROM_MOUNTPOINT()
             elif [[ "$MOUNTPOINT" == "/system" ]]; then
                 GET_DEVICE_FROM_MOUNTPOINT "/"
             else
-                LOGW "No entry for \"$MOUNTPOINT\" found in target fstab"
+                LOGW "타겟 fstab 파일에서 \"$MOUNTPOINT\"에 대한 항목을 찾을 수 없습니다."
                 exit 1
             fi
         else
@@ -65,7 +65,7 @@ GET_DEVICE_FROM_MOUNTPOINT()
 }
 
 # PRINT_ASSERTIONS <info>
-# Returns the assertions code text to be used in the updater-script file.
+# updater-script 파일에서 사용할 assertions 코드 텍스트를 반환합니다.
 PRINT_ASSERTIONS()
 {
     _CHECK_NON_EMPTY_PARAM "BUILD_INFO" "$1" || return 1
@@ -107,8 +107,8 @@ PRINT_ASSERTIONS()
 }
 
 # PRINT_BUILD_INFO <info> [info]
-# Returns the text to be used in the build_info.txt file.
-# Both source and target info can be passed for incremental zips.
+# build_info.txt 파일에 사용할 텍스트를 반환합니다.
+# incremental zip을 위해 소스 및 타겟 정보 모두 전달할 수 있습니다.
 PRINT_BUILD_INFO()
 {
     local SOURCE_BUILD_INFO
@@ -141,7 +141,7 @@ PRINT_BUILD_INFO()
 }
 
 # PRINT_HEADER <info>
-# Returns the header text to be used in the updater-script file.
+# updater-script 파일에서 사용할 헤더 텍스트를 반환합니다.
 PRINT_HEADER()
 {
     _CHECK_NON_EMPTY_PARAM "BUILD_INFO" "$1" || return 1
@@ -193,15 +193,15 @@ PRINT_HEADER()
 }
 
 # PRINT_SEPARATOR
-# Returns the separator text to be used in the updater-script file.
+# updater-script 파일에서 사용할 구분자 텍스트를 반환합니다.
 PRINT_SEPARATOR()
 {
     echo 'ui_print("****************************************");'
 }
 
 # SIGN_IMAGE_WITH_AVB <file>
-# Signs the supplied image with avbtool if not AVB-signed already.
-# The TARGET_${PARTITION_NAME}_PARTITION_SIZE environment variable is required to be set.
+# 이미 AVB 서명이 되지 않은 경우 avbtool을 사용하여 제공된 이미지를 서명합니다.
+# TARGET_${PARTITION_NAME}_PARTITION_SIZE 환경 변수가 설정되어 있어야 합니다.
 SIGN_IMAGE_WITH_AVB()
 {
     _CHECK_NON_EMPTY_PARAM "FILE" "$1" || return 1
@@ -224,7 +224,7 @@ SIGN_IMAGE_WITH_AVB()
         CMD+="--algorithm \"SHA256_RSA4096\" "
         CMD+="--key \"$SRC_DIR/security/avb/testkey_rsa4096.pem\""
 
-        LOG "- Signing image with AVB"
+        LOG "- AVB를 사용하여 이미지 서명 중..."
         EVAL "$CMD" || return 1
     fi
 }

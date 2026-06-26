@@ -6,15 +6,15 @@ source "$SRC_DIR/scripts/utils/common_utils.sh"
 # ]
 
 # SMALI_PATCH <partition> <apk/jar> <smali> <operation> [method] [value] [replacement]
-# Dynamically patches the provided smali file with the supplied arguments.
+# 제공된 인수를 사용하여 smali 파일을 동적으로 패치합니다.
 #
-# Usage:
-# - null <method>: Deletes the contents of supplied method in the provided smali file
-# - remove: Deletes the provided smali file entirely
-# - replace <method> <value> <replacement>: Replaces the occurence of the supplied string in the provided method
-# - replaceall <value> <replacement>: Replaces all the occurences of the supplied string in the whole smali file
-# - return <method> <value>: Patches the supplied method in order to return the desidered value
-# - strip <method>: Deletes the supplied method in the provided smali file
+# 사용법:
+# - null <method>: 제공된 smali 파일에서 지정된 메서드의 내용을 삭제합니다.
+# - remove: 제공된 smali 파일을 완전히 삭제합니다.
+# - replace <method> <value> <replacement>: 제공된 메서드에서 지정된 문자열의 발생을 교체합니다.
+# - replaceall <value> <replacement>: 전체 smali 파일에서 지정된 문자열의 모든 발생을 교체합니다.
+# - return <method> <value>: 원하는 값을 반환하도록 제공된 메서드를 패치합니다.
+# - strip <method>: 제공된 smali 파일에서 지정된 메서드를 삭제합니다.
 SMALI_PATCH()
 {
     _CHECK_NON_EMPTY_PARAM "PARTITION" "$1" || return 1
@@ -28,7 +28,7 @@ SMALI_PATCH()
     local OPERATION="$4"
 
     if ! IS_VALID_PARTITION_NAME "$PARTITION"; then
-        LOGE "\"$PARTITION\" is not a valid partition name"
+        LOGE "\"$PARTITION\"은(는) 유효한 파티션 이름이 아닙니다."
         return 1
     fi
 
@@ -41,7 +41,7 @@ SMALI_PATCH()
     if [[ "$OPERATION" != "null" ]] && [[ "$OPERATION" != "remove" ]] && \
         [[ "$OPERATION" != "replace" ]] && [[ "$OPERATION" != "replaceall" ]] && \
             [[ "$OPERATION" != "return" ]] && [[ "$OPERATION" != "strip" ]]; then
-        LOGE "Operation not valid: \"$OPERATION\""
+        LOGE "유효하지 않은 작업입니다: \"$OPERATION\""
         return 1
     fi
 
@@ -54,7 +54,7 @@ SMALI_PATCH()
         local METHOD="$5"
 
         if ! [[ "$METHOD" =~ ^[A-Za-z0-9\$\<\-].*\(.*\).* ]]; then
-            LOGE "Method name not valid: \"$METHOD\""
+            LOGE "유효하지 않은 메서드 이름입니다: \"$METHOD\""
             return 1
         fi
     fi
@@ -72,18 +72,18 @@ SMALI_PATCH()
 
     local FILE_PATH="$APKTOOL_DIR/$PARTITION/${FILE//system\//}"
 
-    # Check if provided smali exists
+    # 제공된 smali 파일이 존재하는지 확인합니다.
     if [ ! -f "$FILE_PATH/$SMALI" ]; then
-        LOGE "Smali not found: \"/$PARTITION/$FILE/$SMALI\""
+        LOGE "Smali 파일이 존재하지 않습니다: \"/$PARTITION/$FILE/$SMALI\""
 
         local MATCHES
         MATCHES="$(find "$FILE_PATH" -type f -name "*${SMALI##*/}")"
 
         if [ "$MATCHES" ]; then
-            echo -e "\n\033[0;31mPossible matches?" >&2
+            echo -e "\n\033[0;31m일치할 가능성이 있는 파일:" >&2
             echo -e -n "$(head -n 10 <<< "${MATCHES//$FILE_PATH\//    }")" >&2
             [ "$(wc -l <<< "$MATCHES")" -gt 10 ] && \
-                echo -e -n "\n    ...and other $(($(wc -l <<< "$MATCHES") - 10)) matches"  >&2
+                echo -e -n "\n    ...외 $(($(wc -l <<< "$MATCHES") - 10))개의 일치 항목"  >&2
             echo -e "\033[0m" >&2
         fi
 
@@ -94,32 +94,32 @@ SMALI_PATCH()
         USED="$(cut -d ":" -f 1-2 <<< "$USED")"
 
         if [ "$USED" ]; then
-            LOGE "Cannot remove \"$SMALI\" from /$PARTITION/$FILE as it is used elsewhere"
-            echo -e "\n\033[0;31mMatches:" >&2
+            LOGE "/$PARTITION/$FILE 에서 \"$SMALI\"을(를) 삭제할 수 없습니다. 다른 곳에서 사용 중입니다."
+            echo -e "\n\033[0;31m일치 항목:" >&2
             echo -e -n "$(head -n 10 <<< "${USED//$FILE_PATH\//    - }")" >&2
             [ "$(wc -l <<< "$USED")" -gt 10 ] && \
-                echo -e -n "\n    ...and other $(($(wc -l <<< "$USED") - 10)) matches" >&2
+                echo -e -n "\n    ...외 $(($(wc -l <<< "$USED") - 10))개의 일치 항목" >&2
             echo -e "\033[0m" >&2
             return 1
         fi
 
-        LOG "- Removing \"$SMALI\" from /$PARTITION/$FILE"
+        LOG "- /$PARTITION/$FILE 에서 \"$SMALI\"을(를) 삭제합니다."
         EVAL "LC_ALL=C rm \"$FILE_PATH/${SMALI//$/\\$}\"" || return 1
         return 0
     fi
 
-    # Check if provided method is method and exists inside smali
+    # 제공된 메서드가 메서드인지 확인하고 smali 내부에 존재하는지 확인합니다.
     if ! grep "^\.method.*" "$FILE_PATH/$SMALI" | grep -q -F -- "$METHOD" "$FILE_PATH/$SMALI"; then
-        LOGE "Method \"$METHOD\" not found in /$PARTITION/$FILE/$SMALI"
+        LOGE "/$PARTITION/$FILE/$SMALI 에서 \"$METHOD\" 메서드를 찾을 수 없습니다."
 
         local MATCHES
         MATCHES="$(grep -r "^\.method.*$METHOD" "$FILE_PATH")"
 
         if [ "$MATCHES" ]; then
-            echo -e "\n\033[0;31mPossible matches?" >&2
+            echo -e "\n\033[0;31m일치할 가능성이 있는 메서드:" >&2
             echo -e "$(head -n 10 <<< "${MATCHES//$FILE_PATH\//    - }")" >&2
             [ "$(wc -l <<< "$MATCHES")" -gt 10 ] && \
-                echo -n "    ...and other $(($(wc -l <<< "$MATCHES") - 10)) matches" >&2
+                echo -n "    ...외 $(($(wc -l <<< "$MATCHES") - 10))개의 일치 항목" >&2
             echo -e "\033[0m" >&2
         fi
 
@@ -131,23 +131,23 @@ SMALI_PATCH()
 
     BEFORE="$(sha1sum "$FILE_PATH/$SMALI")"
 
-    # Remove the method completely
+    # 메서드를 완전히 삭제합니다.
     if [[ "$OPERATION" == "strip" ]]; then
         local USED
         USED="$(grep -r -n -- "invoke.*$(basename "$SMALI" | cut -d "." -f "1");" "$FILE_PATH")"
         USED="$(grep -F "$METHOD" <<< "$USED" | cut -d ":" -f 1-2)"
 
         if [ "$USED" ]; then
-            LOGE "Cannot strip method \"$METHOD\" in /$PARTITION/$FILE/$SMALI as it is used elsewhere"
-            echo -e "\n\033[0;31mMatches:" >&2
+            LOGE "/$PARTITION/$FILE/$SMALI 에서 \"$METHOD\" 메서드를 삭제할 수 없습니다. 다른 곳에서 사용 중입니다."
+            echo -e "\n\033[0;31m일치 항목:" >&2
             echo -e -n "$(head -n 10 <<< "${USED//$FILE_PATH\//    - }")" >&2
             [ "$(wc -l <<< "$USED")" -gt 10 ] && \
-                echo -e -n "\n    ...and other $(($(wc -l <<< "$USED") - 10)) matches" >&2
+                echo -e -n "\n    ...외 $(($(wc -l <<< "$USED") - 10))개의 일치 항목" >&2
             echo -e "\033[0m" >&2
             return 1
         fi
 
-        LOG "- Stripping method \"$METHOD\" in /$PARTITION/$FILE/$SMALI"
+        LOG "- /$PARTITION/$FILE/$SMALI 에서 \"$METHOD\" 메서드를 삭제합니다."
 
         awk -v FN="$METHOD" '
             BEGIN { inside = 0; skip = 0 }
@@ -173,23 +173,23 @@ SMALI_PATCH()
 
         AFTER="$(sha1sum "$FILE_PATH/$SMALI")"
         if [[ "$BEFORE" == "$AFTER" ]]; then
-            LOGE "Failed to strip method \"$METHOD\" in /$PARTITION/$FILE/$SMALI"
+            LOGE "/$PARTITION/$FILE/$SMALI 에서 \"$METHOD\" 메서드 삭제에 실패했습니다."
             return 1
         fi
-    # Remove the contents of method, leave declaration
+    # 메서드의 내용은 삭제하고, 선언은 남깁니다.
     elif [[ "$OPERATION" == "null" ]]; then
         local RET
         local LOC=".locals 0"
 
         RET="${METHOD#*)}"
         if [[ "$RET" != "V" ]]; then
-            LOGE "Cannot nullify non-void method \"$METHOD\" in /$PARTITION/$FILE/$SMALI"
+            LOGE "/$PARTITION/$FILE/$SMALI 의 non-void 메서드 \"$METHOD\"을(를) 무효화할 수 없습니다."
             return 1
         else
             RET="return-void"
         fi
 
-        LOG "- Nullifying method \"$METHOD\" in /$PARTITION/$FILE/$SMALI"
+        LOG "- /$PARTITION/$FILE/$SMALI 에서 \"$METHOD\" 메서드를 무효화합니다."
 
         awk -v FN="$METHOD" -v LOC="$LOC" -v RET="$RET" '
             BEGIN { inside = 0 }
@@ -213,16 +213,16 @@ SMALI_PATCH()
 
         AFTER="$(sha1sum "$FILE_PATH/$SMALI")"
         if [[ "$BEFORE" == "$AFTER" ]]; then
-            LOGE "Failed to nullify method \"$METHOD\" in /$PARTITION/$FILE/$SMALI"
+            LOGE "/$PARTITION/$FILE/$SMALI 에서 \"$METHOD\" 메서드를 무효화하는 데 실패했습니다."
             return 1
         fi
-    # Replace the method contents with a single return
+    # 메서드 내용을 단일 return으로 교체합니다.
     elif [[ "$OPERATION" == "return" ]]; then
         local RET
         local REG
         local LOC
 
-        # Decide on register
+        # 레지스터 결정
         REG="p0"
         LOC=".locals 0"
         if [[ "$(grep "^\.method.*" "$FILE_PATH/$SMALI" | \
@@ -232,16 +232,16 @@ SMALI_PATCH()
             LOC=".locals 1"
         fi
 
-        # Decide return type
+        # 반환(return) 타입 결정
         RET="${METHOD#*)}"
         if [[ "$RET" == "V" ]]; then
-            LOGE "Cannot change return value of void method \"$METHOD\" in /$PARTITION/$FILE/$SMALI"
+            LOGE "/$PARTITION/$FILE/$SMALI 의 void 메서드 \"$METHOD\" 반환 값을 변경할 수 없습니다."
             return 1
         elif [[ "$RET" == "Ljava/lang/String;" ]]; then
             VALUE="\"$VALUE\""
             RET="return-object $REG"
         elif [[ "$RET" =~ ^\[*[ZBCSIJFD]$ ]]; then
-            # Boolean type
+            # 부울(Boolean) 타입
             if [[ "$RET" == "Z" ]]; then
                 if [[ "$VALUE" == "true" ]]; then
                     VALUE="0x1"
@@ -250,22 +250,22 @@ SMALI_PATCH()
                 fi
 
                 if [[ "$VALUE" != "0x0" ]] && [[ "$VALUE" != "0x1" ]]; then
-                    LOGE "Cannot use a constant value for method \"$METHOD\" in /$PARTITION/$FILE/$SMALI"
+                    LOGE "/$PARTITION/$FILE/$SMALI 의 \"$METHOD\" 메서드에 상수 값을 사용할 수 없습니다."
                     return 1
                 fi
             fi
 
-            # Convert decimal value to hex
+            # 10진수 값을 16진수로 변환
             if [[ "$VALUE" =~ ^-?[0-9]+$ ]]; then
                 VALUE="0x$(printf "%x" "$VALUE")"
             fi
 
             if [[ "$VALUE" =~ ^\".*\"$ ]]; then
-                LOGE "Cannot use a string value for method \"$METHOD\" in /$PARTITION/$FILE/$SMALI"
+                LOGE "/$PARTITION/$FILE/$SMALI 의 \"$METHOD\" 메서드에 문자열 값을 사용할 수 없습니다."
                 return 1
             fi
 
-            # Long type
+            # Long 타입
             if [[ "$RET" == "J" ]]; then
                 RET="return-wide $REG"
             else
@@ -277,18 +277,18 @@ SMALI_PATCH()
             fi
 
             if [[ "$VALUE" != "0x0" ]]; then
-                LOGE "Cannot use a constant value for method \"$METHOD\" in /$PARTITION/$FILE/$SMALI"
+                LOGE "/$PARTITION/$FILE/$SMALI 의 \"$METHOD\" 메서드에 상수 값을 사용할 수 없습니다."
                 return 1
             fi
 
             RET="return-object $REG"
         fi
 
-        # Decide what to return
+        # 반환할 내용 결정
         local hex
         local num
         if [[ "$VALUE" =~ ^-?0x[0-9a-fA-F]+$ ]]; then
-            # Hexadecimal value
+            # 16진수 값
             if [[ "$VALUE" == "-"* ]]; then
                 hex="${VALUE#-0x}"
                 num="$((-16#$hex))"
@@ -304,14 +304,14 @@ SMALI_PATCH()
                 VALUE="const/16 $REG, $VALUE"
             fi
         elif [[ "$VALUE" =~ ^\".*\"$ ]]; then
-            # String value
+            # 문자열 값
             VALUE="const-string $REG, $VALUE"
         else
-            LOGE "Return value for method \"$METHOD\" in /$PARTITION/$FILE/$SMALI not valid: \"$VALUE\""
+            LOGE "/$PARTITION/$FILE/$SMALI 의 \"$METHOD\" 메서드에 대한 반환 값이 유효하지 않습니다: \"$VALUE\""
             return 1
         fi
 
-        LOG "- Replacing return value of method \"$METHOD\" in /$PARTITION/$FILE/$SMALI to \"$VALUE\""
+        LOG "- /$PARTITION/$FILE/$SMALI 에서 \"$METHOD\" 메서드의 반환 값을 \"$VALUE\"(으)로 교체합니다."
 
         awk -v FN="$METHOD" -v LOC="$LOC" -v VAL="$VALUE" -v RET="$RET" '
             BEGIN { inside = 0 }
@@ -337,13 +337,13 @@ SMALI_PATCH()
 
         AFTER="$(sha1sum "$FILE_PATH/$SMALI")"
         if [[ "$BEFORE" == "$AFTER" ]]; then
-            LOGE "Failed to replace return value of method \"$METHOD\" in /$PARTITION/$FILE/$SMALI to \"$VALUE\""
+            LOGE "/$PARTITION/$FILE/$SMALI 에서 \"$METHOD\" 메서드의 반환 값을 \"$VALUE\"(으)로 교체하는 데 실패했습니다."
             return 1
         fi
-    # Replace a string with another string inside the method
-    # or Replace a line with another line inside the method
+    # 메서드 내의 문자열을 다른 문자열로 교체
+    # 또는 메서드 내의 한 줄을 다른 줄로 교체
     elif [[ "$OPERATION" == "replace" ]]; then
-        LOG "- Replacing value \"$VALUE\" of method \"$METHOD\" in /$PARTITION/$FILE/$SMALI with \"$REPLACEMENT\""
+        LOG "- /$PARTITION/$FILE/$SMALI 에서 \"$METHOD\" 메서드의 \"$VALUE\" 값을 \"$REPLACEMENT\"(으)로 교체합니다."
 
         awk -v FN="$METHOD" -v STR="$VALUE" -v REP="$REPLACEMENT" '
             BEGIN { inside = 0; isline = (index(REP, "\n") > 0) }
@@ -375,19 +375,19 @@ SMALI_PATCH()
 
         AFTER="$(sha1sum "$FILE_PATH/$SMALI")"
         if [[ "$BEFORE" == "$AFTER" ]]; then
-            LOGE "Failed to replace value \"$VALUE\" of method \"$METHOD\" in /$PARTITION/$FILE/$SMALI with \"$REPLACEMENT\""
+            LOGE "/$PARTITION/$FILE/$SMALI 에서 \"$METHOD\" 메서드의 \"$VALUE\" 값을 \"$REPLACEMENT\"(으)로 교체하는 데 실패했습니다."
             return 1
         fi
-    # Replace all occurrences of value with another
-    #TODO: Improve, add more failchecks, currently it is unsafe
+    # 발생한 모든 값을 다른 값으로 교체
+    #TODO: 개선 및 오류 검사 추가 요망, 현재는 불안정함
     elif [[ "$OPERATION" == "replaceall" ]]; then
-        LOG "- Replacing all occurrences of \"$VALUE\" with \"$REPLACEMENT\" in /$PARTITION/$FILE/$SMALI"
+        LOG "- /$PARTITION/$FILE/$SMALI 에서 \"$VALUE\"의 모든 발생을 \"$REPLACEMENT\"(으)로 교체합니다."
 
         EVAL "sed -i \"s|$VALUE|$REPLACEMENT|g\" \"$FILE_PATH/${SMALI//$/\\$}\"" || return 1
 
         AFTER="$(sha1sum "$FILE_PATH/$SMALI")"
         if [[ "$BEFORE" == "$AFTER" ]]; then
-            LOGE "Failed to replace all occurrences of \"$VALUE\" with \"$REPLACEMENT\" in /$PARTITION/$FILE/$SMALI"
+            LOGE "/$PARTITION/$FILE/$SMALI 에서 \"$VALUE\"의 모든 발생을 \"$REPLACEMENT\"(으)로 교체하는 데 실패했습니다."
             return 1
         fi
     fi

@@ -38,408 +38,407 @@ IS_UNICA_CERT_AVAILABLE()
 # ]
 
 if [ $# -ne 1 ]; then
-    echo "Usage: gen_config_file <target>" >&2
+    echo "사용 예제: gen_config_file <타겟>" >&2
     exit 1
 elif [ ! -f "$SRC_DIR/target/$1/config.sh" ]; then
-    LOGE "File not found: target/$1/config.sh"
+    LOGE "파일이 존재하지 않습니다: target/$1/config.sh"
     exit 1
 else
     source "$SRC_DIR/unica/configs/version.sh" || exit 1
     source "$SRC_DIR/target/$1/config.sh" || exit 1
     if [ -f "$SRC_DIR/platform/$TARGET_PLATFORM/config.sh" ]; then
-        # HACK
+        # 임시 조치
         source "$SRC_DIR/platform/$TARGET_PLATFORM/config.sh" || exit 1
         source "$SRC_DIR/target/$1/config.sh" || exit 1
     fi
 fi
 
 if [ ! "$TARGET_OS_SINGLE_SYSTEM_IMAGE" ]; then
-    LOGE "TARGET_OS_SINGLE_SYSTEM_IMAGE is not set!"
+    LOGE "TARGET_OS_SINGLE_SYSTEM_IMAGE가 설정되지 않았습니다!"
     exit 1
 elif [ ! -f "$SRC_DIR/unica/configs/$TARGET_OS_SINGLE_SYSTEM_IMAGE.sh" ]; then
-    LOGE "\"$TARGET_OS_SINGLE_SYSTEM_IMAGE\" is not a valid system image"
+    LOGE "\"$TARGET_OS_SINGLE_SYSTEM_IMAGE\"은(는) 유효한 시스템 이미지가 아닙니다."
     exit 1
 else
     source "$SRC_DIR/unica/configs/$TARGET_OS_SINGLE_SYSTEM_IMAGE.sh" || exit 1
 fi
 
 if [ -f "$OUT_DIR/config.sh" ]; then
-    LOGW "config.sh already exists. Regenerating"
+    LOGW "config.sh가 이미 존재합니다. 다시 생성합니다."
     rm -f "$OUT_DIR/config.sh"
 fi
 
-# The following environment variables are considered during execution:
+# 다음 환경 변수들이 스크립트 실행 중에 사용됩니다:
 #
 #   ROM_VERSION
-#     String containing the version name in the format of "x.y.z-xxxxxxxx",
-#     it is set in unica/configs/version.sh.
+#     "x.y.z-xxxxxxxx" 형식의 버전 이름을 포함하는 문자열입니다.
+#     unica/configs/version.sh에 설정되어 있습니다.
 #
 #   ROM_BUILD_TIMESTAMP
-#     Integer containing the build timestamp in seconds, this is used by the UN1CA Updates app.
-#     Defaults to the current time of execution of the script.
+#     빌드 타임스탬프(초)를 포함하는 정수로, UN1CA Updates 앱에서 사용됩니다.
+#     스크립트가 실행되는 현재 시간으로 기본값이 설정됩니다.
 #
 #   [SOURCE/TARGET]_FIRMWARE
-#     String containing the source/target device firmware to use in the format of "Model number/CSC/IMEI".
-#     IMEI number is necessary to fetch the firmware from FUS, alternatively the device serial number can be used.
+#     "모델 번호/CSC/IMEI" 형식으로 사용할 소스/대상 기기 펌웨어를 포함하는 문자열입니다.
+#     FUS에서 펌웨어를 가져오려면 IMEI 번호가 필요하며, 대신 기기 일련 번호를 사용할 수도 있습니다.
 #
 #   [SOURCE/TARGET]_EXTRA_FIRMWARES
-#     If defined, this set of extra devices firmwares will be downloaded/extracted when running `download_fw`/`extract_fw`
-#     along with the ones set in [SOURCE/TARGET]_FIRMWARE.
-#     This variable must be set as a string array in bash syntax, with each string element having the format of "Model number/CSC/IMEI".
-#     Please note that due to bash limitations the variable will be stored as a string with each item delimited using ":".
+#     정의된 경우, `download_fw`/`extract_fw`를 실행할 때 [SOURCE/TARGET]_FIRMWARE에 설정된
+#     기기들과 함께 이 추가 기기 펌웨어 세트가 다운로드/추출됩니다.
+#     이 변수는 각 문자열 요소가 "모델 번호/CSC/IMEI" 형식을 갖는 bash 구문의 문자열 배열로 설정되어야 합니다.
+#     bash의 한계로 인해 변수는 각 항목이 ":"를 사용하여 구분된 문자열로 저장됩니다.
 #
-#     Example:
-#       - Setting the variable: `SOURCE_EXTRA_FIRMWARES=("SM-A528B/BTU/352599501234566" "SM-A528N/KOO/354049881234560")`
-#       - Converting back to array: `IFS=":" read -r -a SOURCE_EXTRA_FIRMWARES <<< "$SOURCE_EXTRA_FIRMWARES"`
+#     예시:
+#       - 변수 설정: `SOURCE_EXTRA_FIRMWARES=("SM-A528B/BTU/352599501234566" "SM-A528N/KOO/354049881234560")`
+#       - 배열로 다시 변환: `IFS=":" read -r -a SOURCE_EXTRA_FIRMWARES <<< "$SOURCE_EXTRA_FIRMWARES"`
 #
 #   TARGET_NAME
-#     String containing the target device name, it must match the `SEC_FLOATING_FEATURE_SETTINGS_CONFIG_BRAND_NAME` config.
-#     SoC OEM name can be appended in case the device has multiple variants with a different SoC.
+#     대상 기기 이름을 포함하는 문자열입니다. `SEC_FLOATING_FEATURE_SETTINGS_CONFIG_BRAND_NAME` 구성과 일치해야 합니다.
+#     기기에 다른 SoC를 사용하는 여러 변형이 있는 경우 SoC OEM 이름을 추가할 수 있습니다.
 #
-#     Example:
+#     예시:
 #       `TARGET_NAME="Galaxy S24 (Exynos)"`
 #
 #   TARGET_CODENAME
-#     String containing the target device codename, it must match the `ro.product.vendor.device` prop.
+#     대상 기기 코드네임을 포함하는 문자열입니다. `ro.product.vendor.device` 속성과 일치해야 합니다.
 #
 #   TARGET_PLATFORM
-#     String containing the target device platform. It is optional and only used when more targets
-#     use the same platform.
+#     대상 기기 플랫폼을 포함하는 문자열입니다. 선택 사항이며 여러 대상이
+#     동일한 플랫폼을 사용할 때만 사용됩니다.
 #
 #   [SOURCE/TARGET]_PLATFORM_SDK_VERSION
-#     Integer containing the SDK API level of the device firmware, it must match the `ro.build.version.sdk` prop.
+#     기기 펌웨어의 SDK API 수준을 포함하는 정수입니다. `ro.build.version.sdk` 속성과 일치해야 합니다.
 #
 #   [SOURCE/TARGET]_PRODUCT_SHIPPING_API_LEVEL
-#     Integer containing the SDK API level that the device is initially launched with,
-#     it must match the `ro.product.first_api_level` prop.
+#     기기가 최초 출시될 때의 SDK API 수준을 포함하는 정수입니다.
+#     `ro.product.first_api_level` 속성과 일치해야 합니다.
 #
 #   [SOURCE/TARGET]_BOARD_API_LEVEL
-#     Integer containing the board API level, it must match the `ro.board.api_level` prop.
+#     보드 API 수준을 포함하는 정수입니다. `ro.board.api_level` 속성과 일치해야 합니다.
 #
 #   TARGET_ASSERT_MODEL
-#     If defined, the zip package will use the provided model numbers with the value in the `ro.boot.em.model` prop
-#     to ensure if it is compatible with the device it is currently being installed in, by default TARGET_CODENAME
-#     is checked instead.
+#     정의된 경우, zip 패키지는 현재 설치 중인 기기와 호환되는지 확인하기 위해
+#     `ro.boot.em.model` 속성의 값과 함께 제공된 모델 번호를 사용합니다.
+#     기본적으로 TARGET_CODENAME이 대신 확인됩니다.
 #
-#     Example:
+#     예시:
 #       `TARGET_ASSERT_MODEL=("SM-A528B" "SM-A528N")`
 #
 #   TARGET_DISABLE_AVB_SIGNING
-#     If set to true, AVB signing will be disabled.
-#     Defaults to false.
+#     true로 설정하면 AVB 서명이 비활성화됩니다.
+#     기본값은 false입니다.
 #
 #   TARGET_KEEP_ORIGINAL_SIGN
-#     If set to true, the original AVB/Samsung signature footer is kept in the target device kernel images.
-#     Defaults to false.
+#     true로 설정하면 원본 AVB/Samsung 서명 푸터가 대상 기기 커널 이미지에 유지됩니다.
+#     기본값은 false입니다.
 #
 #   TARGET_BOOT_PARTITION_SIZE
-#     Integer containing the size in bytes of the target device boot partition size.
+#     대상 기기 boot 파티션 크기(바이트)를 포함하는 정수입니다.
 #
 #   TARGET_DTBO_PARTITION_SIZE
-#     Integer containing the size in bytes of the target device dtbo partition size.
+#     대상 기기 dtbo 파티션 크기(바이트)를 포함하는 정수입니다.
 #
 #   TARGET_INIT_BOOT_PARTITION_SIZE
-#     Integer containing the size in bytes of the target device init_boot partition size.
+#     대상 기기 init_boot 파티션 크기(바이트)를 포함하는 정수입니다.
 #
 #   TARGET_VENDOR_BOOT_PARTITION_SIZE
-#     Integer containing the size in bytes of the target device vendor_boot partition size.
+#     대상 기기 vendor_boot 파티션 크기(바이트)를 포함하는 정수입니다.
 #
 #   TARGET_CACHE_PARTITION_SIZE
-#     Integer containing the size in bytes of the target device cache partition size.
+#     대상 기기 cache 파티션 크기(바이트)를 포함하는 정수입니다.
 #
 #   TARGET_USE_DYNAMIC_PARTITIONS
-#     Boolean which describes whether the device has dynamic partitions support.
-#     Defaults to false.
+#     기기가 동적 파티션을 지원하는지 여부를 나타내는 부울 값입니다.
+#     기본값은 false입니다.
 #
 #   TARGET_SUPER_PARTITION_SIZE
-#     Integer containing the size in bytes of the target device super partition size, which can be checked using the lpdump tool.
-#     Required if TARGET_USE_DYNAMIC_PARTITIONS is set to true.
-#     Notice this must be bigger than TARGET_${TARGET_SUPER_GROUP_NAME}_SIZE.
+#     대상 기기 super 파티션 크기(바이트)를 포함하는 정수입니다. lpdump 도구를 사용하여 확인할 수 있습니다.
+#     TARGET_USE_DYNAMIC_PARTITIONS가 true로 설정된 경우 필수입니다.
+#     이 값은 TARGET_${TARGET_SUPER_GROUP_NAME}_SIZE보다 커야 합니다.
 #
 #   [SOURCE/TARGET]_SUPER_GROUP_NAME
-#     String containing the super partition group name the device uses.
-#     Required if TARGET_USE_DYNAMIC_PARTITIONS is set to true.
-#     When TARGET_SUPER_GROUP_NAME is not set, the value in SOURCE_SUPER_GROUP_NAME is used by default.
+#     기기가 사용하는 super 파티션 그룹 이름을 포함하는 문자열입니다.
+#     TARGET_USE_DYNAMIC_PARTITIONS가 true로 설정된 경우 필수입니다.
+#     TARGET_SUPER_GROUP_NAME이 설정되지 않은 경우 기본적으로 SOURCE_SUPER_GROUP_NAME의 값이 사용됩니다.
 #
 #   TARGET_${TARGET_SUPER_GROUP_NAME}_SIZE
-#     Integer containing the size in bytes of the target device super group size, which can be checked using the lpdump tool.
-#     Required if TARGET_USE_DYNAMIC_PARTITIONS is set to true.
-#     Notice this must be smaller than TARGET_SUPER_PARTITION_SIZE.
+#     대상 기기 super 그룹 크기(바이트)를 포함하는 정수입니다. lpdump 도구를 사용하여 확인할 수 있습니다.
+#     TARGET_USE_DYNAMIC_PARTITIONS가 true로 설정된 경우 필수입니다.
+#     이 값은 TARGET_SUPER_PARTITION_SIZE보다 작아야 합니다.
 #
 #   TARGET_SYSTEM_PARTITION_SIZE
-#     Integer containing the size in bytes of the target device system partition size.
-#     Unused if TARGET_USE_DYNAMIC_PARTITIONS is set to false.
+#     대상 기기 system 파티션 크기(바이트)를 포함하는 정수입니다.
+#     TARGET_USE_DYNAMIC_PARTITIONS가 false로 설정된 경우 사용되지 않습니다.
 #
 #   TARGET_VENDOR_PARTITION_SIZE
-#     Integer containing the size in bytes of the target device vendor partition size.
-#     Unused if TARGET_USE_DYNAMIC_PARTITIONS is set to false.
+#     대상 기기 vendor 파티션 크기(바이트)를 포함하는 정수입니다.
+#     TARGET_USE_DYNAMIC_PARTITIONS가 false로 설정된 경우 사용되지 않습니다.
 #
 #   TARGET_PRODUCT_PARTITION_SIZE
-#     Integer containing the size in bytes of the target device product partition size.
-#     Unused if TARGET_USE_DYNAMIC_PARTITIONS is set to false.
+#     대상 기기 product 파티션 크기(바이트)를 포함하는 정수입니다.
+#     TARGET_USE_DYNAMIC_PARTITIONS가 false로 설정된 경우 사용되지 않습니다.
 #
 #   TARGET_ODM_PARTITION_SIZE
-#     Integer containing the size in bytes of the target device odm partition size.
-#     Unused if TARGET_USE_DYNAMIC_PARTITIONS is set to false.
+#     대상 기기 odm 파티션 크기(바이트)를 포함하는 정수입니다.
+#     TARGET_USE_DYNAMIC_PARTITIONS가 false로 설정된 경우 사용되지 않습니다.
 #
 #   TARGET_VENDOR_DLKM_PARTITION_SIZE
-#     Integer containing the size in bytes of the target device vendor_dlkm partition size.
-#     Unused if TARGET_USE_DYNAMIC_PARTITIONS is set to false.
+#     대상 기기 vendor_dlkm 파티션 크기(바이트)를 포함하는 정수입니다.
+#     TARGET_USE_DYNAMIC_PARTITIONS가 false로 설정된 경우 사용되지 않습니다.
 #
 #   TARGET_ODM_DLKM_PARTITION_SIZE
-#     Integer containing the size in bytes of the target device odm_dlkm partition size.
-#     Unused if TARGET_USE_DYNAMIC_PARTITIONS is set to false.
+#     대상 기기 odm_dlkm 파티션 크기(바이트)를 포함하는 정수입니다.
+#     TARGET_USE_DYNAMIC_PARTITIONS가 false로 설정된 경우 사용되지 않습니다.
 #
 #   TARGET_SYSTEM_DLKM_PARTITION_SIZE
-#     Integer containing the size in bytes of the target device system_dlkm partition size.
-#     Unused if TARGET_USE_DYNAMIC_PARTITIONS is set to false.
+#     대상 기기 system_dlkm 파티션 크기(바이트)를 포함하는 정수입니다.
+#     TARGET_USE_DYNAMIC_PARTITIONS가 false로 설정된 경우 사용되지 않습니다.
 #
 #   TARGET_OS_SINGLE_SYSTEM_IMAGE
-#     String containing the target device SSI, it must match the `ro.build.product` prop.
-#     Currently, only "qssi" and "essi" are supported.
+#     대상 기기 SSI를 포함하는 문자열입니다. `ro.build.product` 속성과 일치해야 합니다.
+#     현재 "qssi" 및 "essi"만 지원됩니다.
 #
 #   TARGET_OS_FILE_SYSTEM_TYPE
-#     String containing the target device firmware file system.
-#     Defaults to "erofs".
-#     Using a different value than stock will require patching the device fstab file in vendor and kernel ramdisk.
+#     대상 기기 펌웨어 파일 시스템을 포함하는 문자열입니다.
+#     기본값은 "erofs"입니다.
+#     순정(stock)과 다른 값을 사용하려면 벤더(vendor)와 커널 램디스크(kernel ramdisk)의 기기 fstab 파일을 패치해야 합니다.
 #
 #   TARGET_OS_BUILD_SYSTEM_EXT_PARTITION
-#     If set to true, system_ext partition will be built.
+#     true로 설정하면 system_ext 파티션이 빌드됩니다.
 #
 #   [SOURCE/TARGET]_AUDIO_CONFIG_RECORDALIVE_LIB_VERSION
-#     Integer containing the device RecordAlive lib version.
-#     Defaults to "none".
-#     It can be checked in the following ways:
-#       - `version` parameter in the `com.samsung.android.camera.mic.SemMultiMicManager.isSupported()` method inside `framework.jar`
-#       - Suffix number in "/vendor/lib(64)/lib_SamsungRec_*.so" lib
+#     기기 RecordAlive 라이브러리 버전을 포함하는 정수입니다.
+#     기본값은 "none"입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - `framework.jar` 내부 `com.samsung.android.camera.mic.SemMultiMicManager.isSupported()` 메서드의 `version` 매개변수
+#       - "/vendor/lib(64)/lib_SamsungRec_*.so" 라이브러리의 접미사 숫자
 #
 #   [SOURCE/TARGET]_AUDIO_SUPPORT_ACH_RINGTONE
-#     Boolean which describes whether the device supports the "Sync vibration with ringtone" feature.
-#     It can be checked in the following ways:
-#       - /system/media/audio files start with "ACH_"
-#       - `SEC_AUDIO_SUPPORT_ACH_RINGTONE` in the `com.samsung.android.audio.Rune` class inside `framework.jar` is set to true
-#       - `SUPPORT_ACH` in the `com.samsung.android.vibrator.VibRune` class inside `framework.jar` is set to true
+#     기기가 "벨소리에 맞춰 진동" 기능을 지원하는지 여부를 나타내는 부울 값입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - /system/media/audio 파일이 "ACH_"로 시작함
+#       - `framework.jar` 내부 `com.samsung.android.audio.Rune` 클래스의 `SEC_AUDIO_SUPPORT_ACH_RINGTONE`이 true로 설정됨
+#       - `framework.jar` 내부 `com.samsung.android.vibrator.VibRune` 클래스의 `SUPPORT_ACH`가 true로 설정됨
 #
 #   [SOURCE/TARGET]_AUDIO_SUPPORT_DUAL_SPEAKER
-#     Boolean which describes whether the device has dual speaker support.
-#     It can be checked in the following ways:
-#       - `SEC_AUDIO_NUM_OF_SPEAKER` in the `com.samsung.android.audio.Rune` class inside `framework.jar` is set to "2"
-#       - `SEC_AUDIO_SUPPORT_DUAL_SPEAKER` in the `com.samsung.android.audio.Rune` class inside `framework.jar` is set to true
-#       - "SEC_FLOATING_FEATURE_AUDIO_SUPPORT_DUAL_SPEAKER" in floating_feature.xml is set to "TRUE"
+#     기기가 듀얼 스피커를 지원하는지 여부를 나타내는 부울 값입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - `framework.jar` 내부 `com.samsung.android.audio.Rune` 클래스의 `SEC_AUDIO_NUM_OF_SPEAKER`가 "2"로 설정됨
+#       - `framework.jar` 내부 `com.samsung.android.audio.Rune` 클래스의 `SEC_AUDIO_SUPPORT_DUAL_SPEAKER`가 true로 설정됨
+#       - floating_feature.xml의 "SEC_FLOATING_FEATURE_AUDIO_SUPPORT_DUAL_SPEAKER"가 "TRUE"로 설정됨
 #
 #   [SOURCE/TARGET]_AUDIO_SUPPORT_VIRTUAL_VIBRATION
-#     Boolean which describes whether the device supports the "Vibration sound for incoming calls" feature.
-#     It can be checked in the following ways:
-#       - `SEC_AUDIO_SUPPORT_VIRTUAL_VIBRATION_SOUND` in the `com.samsung.android.audio.Rune` class inside `framework.jar` is set to true
-#       - `SUPPORT_VIRTUAL_VIBRATION_SOUND` in the `com.samsung.android.vibrator.VibRune` class inside `framework.jar` is set to true
+#     기기가 "전화 수신 시 진동 소리" 기능을 지원하는지 여부를 나타내는 부울 값입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - `framework.jar` 내부 `com.samsung.android.audio.Rune` 클래스의 `SEC_AUDIO_SUPPORT_VIRTUAL_VIBRATION_SOUND`가 true로 설정됨
+#       - `framework.jar` 내부 `com.samsung.android.vibrator.VibRune` 클래스의 `SUPPORT_VIRTUAL_VIBRATION_SOUND`가 true로 설정됨
 #
 #   [SOURCE/TARGET]_CAMERA_SUPPORT_CAMERAX_EXTENSION
-#     Boolean which describes whether the device supports CameraX Extensions API.
-#     It can be checked in the following ways:
-#       - "ro.camerax.extensions.enabled" in "/system/build.prop" is set to "true"
+#     기기가 CameraX Extensions API를 지원하는지 여부를 나타내는 부울 값입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - "/system/build.prop"의 "ro.camerax.extensions.enabled"가 "true"로 설정됨
 #
 #   [SOURCE/TARGET]_CAMERA_SUPPORT_CUTOUT_PROTECTION
-#     Boolean which describes whether the device supports the camera cutout protection feature.
-#     It can be checked in the following ways:
-#       - "config_enableDisplayCutoutProtection" in "res/values/bools.xml" inside `SystemUI.apk` is set to "true"
+#     기기가 카메라 컷아웃 보호 기능을 지원하는지 여부를 나타내는 부울 값입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - `SystemUI.apk` 내부 "res/values/bools.xml"의 "config_enableDisplayCutoutProtection"이 "true"로 설정됨
 #
 #   [SOURCE/TARGET]_CAMERA_SUPPORT_MASS_APP_FLAVOR
-#     Boolean which describes whether the device ships the mass Samsung Camera app flavor.
-#     It can be checked in the following ways:
-#       - `AndroidManifest.xml` of `SamsungCamera.apk` has `hal3_mass-phone-release` value
+#     기기에 대중적인(mass) Samsung Camera 앱 버전이 탑재되는지 여부를 나타내는 부울 값입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - `SamsungCamera.apk`의 `AndroidManifest.xml`이 `hal3_mass-phone-release` 값을 가짐
 #
 #   [SOURCE/TARGET]_CAMERA_SUPPORT_SDK_SERVICE
-#     Boolean which describes whether the device supports the Samsung Camera SDK Service.
+#     기기가 Samsung Camera SDK Service를 지원하는지 여부를 나타내는 부울 값입니다.
 #
 #   [SOURCE/TARGET]_COMMON_CONFIG_MDNIE_MODE
-#     Integer containing the device mDNIe feature bit flag.
-#     It can be checked in the following ways:
-#       - `MDNIE_SUPPORT_FUNCTION` value in the `com.samsung.android.hardware.display.SemMdnieManagerService` class inside `services.jar`
-#       - "SEC_FLOATING_FEATURE_COMMON_CONFIG_MDNIE_MODE" value in floating_feature.xml
+#     기기 mDNIe 기능 비트 플래그를 포함하는 정수입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - `services.jar` 내부 `com.samsung.android.hardware.display.SemMdnieManagerService` 클래스의 `MDNIE_SUPPORT_FUNCTION` 값
+#       - floating_feature.xml의 "SEC_FLOATING_FEATURE_COMMON_CONFIG_MDNIE_MODE" 값
 #
 #   [SOURCE/TARGET]_COMMON_SUPPORT_DYN_RESOLUTION_CONTROL
-#     Boolean which describes whether the device has a WQHD(+) display.
-#     It can be checked in the following ways:
-#       - `FW_DYNAMIC_RESOLUTION_CONTROL` in the `com.samsung.android.rune.CoreRune` class inside `framework.jar` is set to true
-#       - "SEC_FLOATING_FEATURE_COMMON_CONFIG_DYN_RESOLUTION_CONTROL" in floating_feature.xml is set
+#     기기에 WQHD(+) 디스플레이가 있는지 여부를 나타내는 부울 값입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - `framework.jar` 내부 `com.samsung.android.rune.CoreRune` 클래스의 `FW_DYNAMIC_RESOLUTION_CONTROL`이 true로 설정됨
+#       - floating_feature.xml의 "SEC_FLOATING_FEATURE_COMMON_CONFIG_DYN_RESOLUTION_CONTROL"이 설정됨
 #
 #   [SOURCE/TARGET]_COMMON_SUPPORT_EMBEDDED_SIM
-#     Boolean which describes whether the device has eSIM support.
-#     It can be checked in the following ways:
-#       - "SEC_FLOATING_FEATURE_COMMON_CONFIG_EMBEDDED_SIM_SLOTSWITCH" in floating_feature.xml is set
+#     기기가 eSIM을 지원하는지 여부를 나타내는 부울 값입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - floating_feature.xml의 "SEC_FLOATING_FEATURE_COMMON_CONFIG_EMBEDDED_SIM_SLOTSWITCH"가 설정됨
 #
 #   [SOURCE/TARGET]_COMMON_SUPPORT_HDR_EFFECT
-#     Boolean which describes whether the device supports the "Video brightness" feature.
-#     Defaults to true if COMMON_CONFIG_MDNIE_MODE contains the "mSupportContentModeVideoEnhance" bit (1 << 2).
-#     It can be checked in the following ways:
-#       - `com.samsung.android.settings.usefulfeature.videoenhancer.VideoEnhancerPreferenceController.getAvailabilityStatus()`
-#         method inside `SecSettings.apk` is not UNSUPPORTED_ON_DEVICE (3)
-#       - "SEC_FLOATING_FEATURE_COMMON_SUPPORT_HDR_EFFECT" in floating_feature.xml is set to "TRUE"
+#     기기가 "동영상 밝기" 기능을 지원하는지 여부를 나타내는 부울 값입니다.
+#     COMMON_CONFIG_MDNIE_MODE에 "mSupportContentModeVideoEnhance" 비트 (1 << 2)가 포함된 경우 기본값은 true입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - `SecSettings.apk` 내부 `com.samsung.android.settings.usefulfeature.videoenhancer.VideoEnhancerPreferenceController.getAvailabilityStatus()` 메서드가 UNSUPPORTED_ON_DEVICE (3)이 아님
+#       - floating_feature.xml의 "SEC_FLOATING_FEATURE_COMMON_SUPPORT_HDR_EFFECT"가 "TRUE"로 설정됨
 #
 #   [SOURCE/TARGET]_DVFSAPP_CONFIG_DVFS_POLICY_FILENAME
-#     String containing the DVFS policy file name used by SDHMS.
-#     It can be checked in the following ways:
-#       - `DVFS_FILENAME` value in the `com.android.server.ssrm.Feature` class inside `ssrm.jar`
+#     SDHMS에서 사용하는 DVFS 정책 파일 이름을 포함하는 문자열입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - `ssrm.jar` 내부 `com.android.server.ssrm.Feature` 클래스의 `DVFS_FILENAME` 값
 #
 #   [SOURCE/TARGET]_DVFSAPP_CONFIG_SSRM_POLICY_FILENAME
-#     String containing the SSRM policy file name used by SDHMS.
-#     It can be checked in the following ways:
-#       - `SSRM_FILENAME` value in the `com.android.server.ssrm.Feature` class inside `ssrm.jar`
-#       - "SEC_FLOATING_FEATURE_SYSTEM_CONFIG_SIOP_POLICY_FILENAME" value in floating_feature.xml
+#     SDHMS에서 사용하는 SSRM 정책 파일 이름을 포함하는 문자열입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - `ssrm.jar` 내부 `com.android.server.ssrm.Feature` 클래스의 `SSRM_FILENAME` 값
+#       - floating_feature.xml의 "SEC_FLOATING_FEATURE_SYSTEM_CONFIG_SIOP_POLICY_FILENAME" 값
 #
 #   [SOURCE/TARGET]_FINGERPRINT_CONFIG_SENSOR
-#     String containing the fingerprint sensor feature string.
-#     It can be checked in the following ways:
-#       - `mConfig` value in the `com.samsung.android.bio.fingerprint.SemFingerprintManager$Characteristic` class inside `framework.jar`
+#     지문 센서 기능 문자열을 포함하는 문자열입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - `framework.jar` 내부 `com.samsung.android.bio.fingerprint.SemFingerprintManager$Characteristic` 클래스의 `mConfig` 값
 #
 #   [SOURCE/TARGET]_LCD_CONFIG_COLOR_WEAKNESS_SOLUTION
-#     Integer containing the device mDNIe color blindness feature flag.
-#     It can be checked in the following ways:
-#       - (API 34 and below) `WEAKNESS_SOLUTION_FUNCTION` value in the `com.samsung.android.hardware.display.SemMdnieManagerService` class inside `services.jar`
-#       - (API 35 and above) `A11Y_COLOR_BOOL_SUPPORT_DMC_COLORWEAKNESS` value in the `android.view.accessibility.A11yRune` class inside `framework.jar`
+#     기기 mDNIe 색약 기능 플래그를 포함하는 정수입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - (API 34 이하) `services.jar` 내부 `com.samsung.android.hardware.display.SemMdnieManagerService` 클래스의 `WEAKNESS_SOLUTION_FUNCTION` 값
+#       - (API 35 이상) `framework.jar` 내부 `android.view.accessibility.A11yRune` 클래스의 `A11Y_COLOR_BOOL_SUPPORT_DMC_COLORWEAKNESS` 값
 #
 #   [SOURCE/TARGET]_LCD_CONFIG_CONTROL_AUTO_BRIGHTNESS
-#     Integer containing the device auto brightness type.
-#     It can be checked in the following ways:
-#       - `AUTO_BRIGHTNESS_TYPE` value in the `com.android.server.power.PowerManagerUtil` class inside `services.jar`
-#       - "SEC_FLOATING_FEATURE_LCD_CONFIG_CONTROL_AUTO_BRIGHTNESS" value in floating_feature.xml
+#     기기 자동 밝기 유형을 포함하는 정수입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - `services.jar` 내부 `com.android.server.power.PowerManagerUtil` 클래스의 `AUTO_BRIGHTNESS_TYPE` 값
+#       - floating_feature.xml의 "SEC_FLOATING_FEATURE_LCD_CONFIG_CONTROL_AUTO_BRIGHTNESS" 값
 #
 #   [SOURCE/TARGET]_LCD_CONFIG_HFR_DEFAULT_REFRESH_RATE
-#     Integer containing the device default refresh rate.
-#     It can be checked in the following ways:
-#       - "SEC_FLOATING_FEATURE_LCD_CONFIG_HFR_DEFAULT_REFRESH_RATE" value in floating_feature.xml
+#     기기 기본 주사율을 포함하는 정수입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - floating_feature.xml의 "SEC_FLOATING_FEATURE_LCD_CONFIG_HFR_DEFAULT_REFRESH_RATE" 값
 #
 #   [SOURCE/TARGET]_LCD_CONFIG_HFR_MODE
-#     Integer containing the device variable refresh rate type.
-#     It can be checked in the following ways:
-#       - `LCD_CONFIG_HFR_MODE` value in the `com.samsung.android.hardware.secinputdev.SemInputFeatures` class inside `secinputdev-service.jar`
-#       - "SEC_FLOATING_FEATURE_LCD_CONFIG_HFR_MODE" value in floating_feature.xml
+#     기기 가변 주사율 유형을 포함하는 정수입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - `secinputdev-service.jar` 내부 `com.samsung.android.hardware.secinputdev.SemInputFeatures` 클래스의 `LCD_CONFIG_HFR_MODE` 값
+#       - floating_feature.xml의 "SEC_FLOATING_FEATURE_LCD_CONFIG_HFR_MODE" 값
 #
 #   [SOURCE/TARGET]_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE
-#     String containing the device available refresh rate profiles.
-#     Defaults to "none" for devices without VRR.
-#     It can be checked in the following ways:
-#       - "SEC_FLOATING_FEATURE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE" value in floating_feature.xml
+#     기기의 사용 가능한 주사율 프로필을 포함하는 문자열입니다.
+#     VRR이 없는 기기의 경우 기본값은 "none"입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - floating_feature.xml의 "SEC_FLOATING_FEATURE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE" 값
 #
 #   [SOURCE/TARGET]_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE_NS
-#     String containing the device refresh rate normal speed.
-#     Defaults to "none".
-#     It can be checked in the following ways:
-#       - "SEC_FLOATING_FEATURE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE_NS" value in floating_feature.xml
+#     기기 주사율 표준 속도를 포함하는 문자열입니다.
+#     기본값은 "none"입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - floating_feature.xml의 "SEC_FLOATING_FEATURE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE_NS" 값
 #
 #   [SOURCE/TARGET]_LCD_CONFIG_SEAMLESS_BRT
-#     String containing the device low/high brightness thresholds for VRR.
-#     Defaults to "none".
-#     It can be checked in the following ways:
-#       - `configBrt` value in the `com.samsung.android.hardware.display.RefreshRateConfig` class inside `framework.jar`
+#     VRR에 대한 기기 저/고 밝기 임계값을 포함하는 문자열입니다.
+#     기본값은 "none"입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - `framework.jar` 내부 `com.samsung.android.hardware.display.RefreshRateConfig` 클래스의 `configBrt` 값
 #
 #   [SOURCE/TARGET]_LCD_CONFIG_SEAMLESS_LUX
-#     String containing the device low/high ambient lux thresholds for VRR.
-#     Defaults to "none".
-#     It can be checked in the following ways:
-#       - `configLux` value in the `com.samsung.android.hardware.display.RefreshRateConfig` class inside `framework.jar`
+#     VRR에 대한 기기 저/고 주변 조도 임계값을 포함하는 문자열입니다.
+#     기본값은 "none"입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - `framework.jar` 내부 `com.samsung.android.hardware.display.RefreshRateConfig` 클래스의 `configLux` 값
 #
 #   [SOURCE/TARGET]_LCD_SUPPORT_MDNIE_HW
-#     Boolean which describes whether the device supports hardware mDNIe.
-#     It can be checked in the following ways:
-#       - `A11Y_COLOR_BOOL_SUPPORT_MDNIE_HW` value in the `android.view.accessibility.A11yRune` class inside `framework.jar`
-#       - "SEC_FLOATING_FEATURE_LCD_SUPPORT_MDNIE_HW" value in floating_feature.xml
+#     기기가 하드웨어 mDNIe를 지원하는지 여부를 나타내는 부울 값입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - `framework.jar` 내부 `android.view.accessibility.A11yRune` 클래스의 `A11Y_COLOR_BOOL_SUPPORT_MDNIE_HW` 값
+#       - floating_feature.xml의 "SEC_FLOATING_FEATURE_LCD_SUPPORT_MDNIE_HW" 값
 #
 #   [SOURCE/TARGET]_RIL_FEATURES
-#     String containing the device RIL feature string.
-#     Defaults to "none".
-#     It can be checked in the following ways:
-#     - `RIL_FEATURES` value in the `com.android.internal.telephony.TelephonyFeatures` class inside `framework.jar`
+#     기기 RIL 기능 문자열을 포함하는 문자열입니다.
+#     기본값은 "none"입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#     - `framework.jar` 내부 `com.android.internal.telephony.TelephonyFeatures` 클래스의 `RIL_FEATURES` 값
 #
 #   [SOURCE/TARGET]_RIL_SIM_CONFIG_MULTISIM_TRAYCOUNT
-#     Integer containing the device multi SIM tray count.
+#     기기 멀티 SIM 트레이 개수를 포함하는 정수입니다.
 #
 #   [SOURCE/TARGET]_RIL_SUPPORT_WATERPROOF_SIM_TRAY_MSG
-#     Boolean which describes whether the device SIM tray has waterproof protection.
+#     기기 SIM 트레이가 방수를 지원하는지 여부를 나타내는 부울 값입니다.
 #
 #   [SOURCE/TARGET]_SECURITY_CONFIG_ESE_CHIP_VENDOR
-#     String containing the device eSE chip vendor.
-#     Defaults to "none".
-#     It can be checked in the following ways:
-#       - `chipVendor` value in the `com.android.server.SemService` class inside `framework.jar`
-#       - `chipVendor` value in the `com.samsung.android.service.SemService.SemServiceManager` class inside `framework.jar`
-#       - `chipVendor` value in the `com.android.se.internal.UtilExtension` class inside `SecureElement.apk`
+#     기기 eSE 칩 벤더를 포함하는 문자열입니다.
+#     기본값은 "none"입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - `framework.jar` 내부 `com.android.server.SemService` 클래스의 `chipVendor` 값
+#       - `framework.jar` 내부 `com.samsung.android.service.SemService.SemServiceManager` 클래스의 `chipVendor` 값
+#       - `SecureElement.apk` 내부 `com.android.se.internal.UtilExtension` 클래스의 `chipVendor` 값
 #
 #   [SOURCE/TARGET]_SECURITY_CONFIG_ESE_COS_NAME
-#     String containing the device eSE cOS name.
-#     Defaults to "none".
-#     It can be checked in the following ways:
-#       - `cosName` value in the `com.android.server.SemService` class inside `framework.jar`
-#       - `cosName` value in the `com.samsung.android.service.SemService.SemServiceManager` class inside `framework.jar`
-#       - `mEseCosName` value in the `com.android.se.internal.UtilExtension` class inside `SecureElement.apk`
+#     기기 eSE cOS 이름을 포함하는 문자열입니다.
+#     기본값은 "none"입니다.
+#     다음과 같은 방법으로 확인할 수 있습니다:
+#       - `framework.jar` 내부 `com.android.server.SemService` 클래스의 `cosName` 값
+#       - `framework.jar` 내부 `com.samsung.android.service.SemService.SemServiceManager` 클래스의 `cosName` 값
+#       - `SecureElement.apk` 내부 `com.android.se.internal.UtilExtension` 클래스의 `mEseCosName` 값
 #
 #   [SOURCE/TARGET]_WLAN_CONFIG_CONNECTION_PERSONALIZATION
-#     Integer containing the device Connection Personalizer feature flag.
+#     기기 연결 개인화 기능 플래그를 포함하는 정수입니다.
 #
 #   [SOURCE/TARGET]_WLAN_CONFIG_CPU_CSTATE_DISABLE_THRESHOLD
-#     Integer containing the device CPU C-State boost threshold.
+#     기기 CPU C-State 부스트 임계값을 포함하는 정수입니다.
 #
 #   [SOURCE/TARGET]_WLAN_CONFIG_CUSTOM_BACKOFF
-#     String containing the device backoff config for Wi-Fi coex channel avoidance.
+#     Wi-Fi coex 채널 회피를 위한 기기 백오프 구성을 포함하는 문자열입니다.
 #
 #   [SOURCE/TARGET]_WLAN_CONFIG_DATA_ACTIVITY_AFFINITY_BOOSTER_THRESHOLD
-#     Integer containing the device Wi-Fi affinity boost threshold.
+#     기기 Wi-Fi 친화도 부스트 임계값을 포함하는 정수입니다.
 #
 #   [SOURCE/TARGET]_WLAN_CONFIG_DYNAMIC_SWITCH
-#     Integer containing the device dynamic switch feature flag.
+#     기기 동적 전환 기능 플래그를 포함하는 정수입니다.
 #
 #   [SOURCE/TARGET]_WLAN_CONFIG_L1SS_DISABLE_THRESHOLD
-#     Integer containing the device L1ss boost threshold.
+#     기기 L1ss 부스트 임계값을 포함하는 정수입니다.
 #
 #   [SOURCE/TARGET]_WLAN_SUPPORT_80211AX
-#     Boolean which describes whether the device supports the Wi-Fi 6 standard.
+#     기기가 Wi-Fi 6 표준을 지원하는지 여부를 나타내는 부울 값입니다.
 #
 #   [SOURCE/TARGET]_WLAN_SUPPORT_80211AX_6GHZ
-#     Boolean which describes whether the device supports the Wi-Fi 6E standard.
+#     기기가 Wi-Fi 6E 표준을 지원하는지 여부를 나타내는 부울 값입니다.
 #
 #   [SOURCE/TARGET]_WLAN_SUPPORT_APE_SERVICE
-#     Boolean which describes whether the device supports the "Realtime Data Priority Mode" feature.
+#     기기가 "실시간 데이터 우선 모드" 기능을 지원하는지 여부를 나타내는 부울 값입니다.
 #
 #   [SOURCE/TARGET]_WLAN_SUPPORT_LOWLATENCY
-#     Boolean which describes whether the device supports low latency Wi-Fi.
+#     기기가 저지연 Wi-Fi를 지원하는지 여부를 나타내는 부울 값입니다.
 #
 #   [SOURCE/TARGET]_WLAN_SUPPORT_MBO
-#     Boolean which describes whether the device supports the Wi-Fi Agile Multiband standard.
+#     기기가 Wi-Fi Agile Multiband 표준을 지원하는지 여부를 나타내는 부울 값입니다.
 #
 #   [SOURCE/TARGET]_WLAN_SUPPORT_MOBILEAP_5G_BASEDON_COUNTRY
-#     Boolean which describes whether the device should enable the 5Ghz Mobile Hotspot band depending the country code.
+#     기기가 국가 코드에 따라 5Ghz 모바일 핫스팟 대역을 활성화해야 하는지 여부를 나타내는 부울 값입니다.
 #
 #   [SOURCE/TARGET]_WLAN_SUPPORT_MOBILEAP_6G
-#     Boolean which describes whether the device supports Wi-Fi 6E Mobile Hotspot.
+#     기기가 Wi-Fi 6E 모바일 핫스팟을 지원하는지 여부를 나타내는 부울 값입니다.
 #
 #   [SOURCE/TARGET]_WLAN_SUPPORT_MOBILEAP_DUALAP
-#     Boolean which describes whether the device supports the Mobile Hotspot dual band feature.
+#     기기가 모바일 핫스팟 듀얼 밴드 기능을 지원하는지 여부를 나타내는 부울 값입니다.
 #
 #   [SOURCE/TARGET]_WLAN_SUPPORT_MOBILEAP_OWE
-#     Boolean which describes whether the device supports the OWE standard.
+#     기기가 OWE 표준을 지원하는지 여부를 나타내는 부울 값입니다.
 #
 #   [SOURCE/TARGET]_WLAN_SUPPORT_MOBILEAP_POWER_SAVEMODE
-#     Boolean which describes whether the device supports the Mobile Hotspot "Power saving mode" feature.
+#     기기가 모바일 핫스팟 "절전 모드" 기능을 지원하는지 여부를 나타내는 부울 값입니다.
 #
 #   [SOURCE/TARGET]_WLAN_SUPPORT_MOBILEAP_PRIORITIZE_TRAFFIC
-#     Boolean which describes whether the device supports the Mobile Hotspot "Prioritize real-time traffic" feature.
+#     기기가 모바일 핫스팟 "실시간 트래픽 우선 순위" 기능을 지원하는지 여부를 나타내는 부울 값입니다.
 #
 #   [SOURCE/TARGET]_WLAN_SUPPORT_MOBILEAP_WIFI_CONCURRENCY
-#     Boolean which describes whether the device supports DBS.
+#     기기가 DBS를 지원하는지 여부를 나타내는 부울 값입니다.
 #
 #   [SOURCE/TARGET]_WLAN_SUPPORT_MOBILEAP_WIFISHARING_LITE
-#     Boolean which describes whether the device supports Wi-Fi Sharing Lite.
+#     기기가 Wi-Fi 공유 라이트를 지원하는지 여부를 나타내는 부울 값입니다.
 #
 #   [SOURCE/TARGET]_WLAN_SUPPORT_SWITCH_FOR_INDIVIDUAL_APPS
-#     Boolean which describes whether the device supports the "Allow individual apps to switch" feature.
+#     기기가 "개별 앱 전환 허용" 기능을 지원하는지 여부를 나타내는 부울 값입니다.
 #
 #   [SOURCE/TARGET]_WLAN_SUPPORT_TWT_CONTROL
-#     Boolean which describes whether the device supports TWT.
+#     기기가 TWT를 지원하는지 여부를 나타내는 부울 값입니다.
 #
 #   [SOURCE/TARGET]_WLAN_SUPPORT_WIFI_TO_CELLULAR
-#     Boolean which describes whether the device supports Wi-Fi to Cellular.
+#     기기가 Wi-Fi에서 셀룰러로의 전환을 지원하는지 여부를 나타내는 부울 값입니다.
 {
-    echo "# Automatically generated by scripts/internal/gen_config_file.sh"
+    echo "# scripts/internal/gen_config_file.sh에 의해 자동으로 생성됨"
     echo "ROM_IS_OFFICIAL=\"$(IS_UNICA_CERT_AVAILABLE)\""
     GET_BUILD_VAR "ROM_VERSION"
     GET_BUILD_VAR "ROM_BUILD_TIMESTAMP" "$(date +%s)"

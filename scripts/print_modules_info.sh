@@ -15,7 +15,7 @@ PRINT_MODULE_INFO()
     local MODDESC
 
     if [ ! -d "$MODPATH" ]; then
-        LOGE "Folder not found: $MODPATH"
+        LOGE "폴더가 존재하지 않습니다: $MODPATH"
         exit 1
     fi
 
@@ -24,7 +24,7 @@ PRINT_MODULE_INFO()
     fi
 
     if [ ! -f "$MODPATH/module.prop" ]; then
-        LOGE "File not found: $MODPATH/module.prop"
+        LOGE "파일이 존재하지 않습니다: $MODPATH/module.prop"
         exit 1
     elif [ -f "$MODPATH/disable" ]; then
         return 0
@@ -36,16 +36,16 @@ PRINT_MODULE_INFO()
 
     ((MODULES_COUNT+=1))
 
-    LOG "-- Module $MODULES_COUNT:"
-    LOG "Name: $MODNAME"
-    LOG "Author(s): $MODAUTH"
-    [ "$MODDESC" ] && LOG "Description: $MODDESC"
+    LOG "-- 모듈 $MODULES_COUNT:"
+    LOG "이름: $MODNAME"
+    LOG "제작자: $MODAUTH"
+    [ "$MODDESC" ] && LOG "설명: $MODDESC"
 }
 #]
 
 if [ "$#" -gt 0 ]; then
-    echo "Usage: print_modules_info" >&2
-    echo "This script does not accept any arguments." >&2
+    echo "사용 예제: print_modules_info" >&2
+    echo "이 스크립트는 아무 인자도 받지 않습니다." >&2
     exit 1
 fi
 

@@ -30,7 +30,7 @@ PREPARE_SCRIPT()
         elif [[ "$1" == "--ignore-target" ]]; then
             IGNORE_TARGET=true
         elif [[ "$1" == "-"* ]]; then
-            LOGE "Unknown option: $1"
+            LOGE "알 수 없는 옵션입니다: $1"
             PRINT_USAGE
             exit 1
         else
@@ -65,10 +65,10 @@ PREPARE_SCRIPT()
 
 PRINT_USAGE()
 {
-    echo "Usage: download_fw [options] <firmware>" >&2
-    echo " --ignore-source : Skip parsing source firmware flags" >&2
-    echo " --ignore-target : Skip parsing target firmware flags" >&2
-    echo " -f, --force : Force firmware download" >&2
+    echo "사용 예제: download_fw [옵션] <펌웨어>" >&2
+    echo " --ignore-source : 소스(source) 펌웨어 플래그 분석을 건너뜁니다." >&2
+    echo " --ignore-target : 타겟(target) 펌웨어 플래그 분석을 건너뜁니다." >&2
+    echo " -f, --force     : 펌웨어 다운로드를 강제합니다." >&2
 }
 
 VERIFY_ODIN_PACKAGES()
@@ -80,26 +80,26 @@ VERIFY_ODIN_PACKAGES()
 
     while IFS= read -r f; do
         FILE_NAME="$(basename "$f")"
-        LOG_STEP_IN "- Verifying $FILE_NAME..."
+        LOG_STEP_IN "- 검증 중: $FILE_NAME..."
 
         FILE_NAME="${FILE_NAME%.md5}"
 
-        # Samsung stores the output of `md5sum` at the very end of the file
-        LENGTH="32" # Length of MD5 hash
-        LENGTH="$((LENGTH + 2))" # 2 whitespace chars
-        LENGTH="$((LENGTH + ${#FILE_NAME}))" # File name without .md5 extension
-        LENGTH="$((LENGTH + 1))" # 1 newline char
+        # 삼성은 파일의 맨 마지막 부분에 `md5sum` 결과를 저장함
+        LENGTH="32" # MD5 해시 길이
+        LENGTH="$((LENGTH + 2))" # 공백 문자 2개
+        LENGTH="$((LENGTH + ${#FILE_NAME}))" # .md5 확장자를 제외한 파일 이름
+        LENGTH="$((LENGTH + 1))" # 줄바꿈 문자 1개
 
         STORED_HASH="$(tail -c "$LENGTH" "$f" | cut -d " " -f 1 -s)"
         if [ ! "$STORED_HASH" ] || [[ "${#STORED_HASH}" != "32" ]]; then
-            LOG "\033[0;31m! Expected hash could not be parsed\033[0m"
+            LOG "\033[0;31m! 저장된 예상 해시값을 파싱할 수 없습니다\033[0m"
             exit 1
         fi
 
         CALCULATED_HASH="$(head -c-$LENGTH "$f" | md5sum | cut -d " " -f 1 -s)"
 
         if [[ "$STORED_HASH" != "$CALCULATED_HASH" ]]; then
-            LOG "\033[0;31m! File is damaged\033[0m"
+            LOG "\033[0;31m! 파일이 손상되었습니다\033[0m"
             exit 1
         fi
 
@@ -115,44 +115,44 @@ for i in "${FIRMWARES[@]}"; do
 
     LATEST_FIRMWARE="$(GET_LATEST_FIRMWARE "$MODEL" "$CSC")"
     if [ ! "$LATEST_FIRMWARE" ]; then
-        LOGE "Latest available firmware could not be fetched"
+        LOGE "이용 가능한 최신 펌웨어 정보를 가져올 수 없습니다."
         exit 1
     fi
 
-    LOG_STEP_IN "- Processing $MODEL firmware with $CSC CSC"
-    LOG "- Downloaded firmware: $(cat "$ODIN_DIR/${MODEL}_${CSC}/.downloaded" 2> /dev/null)"
-    LOG "- Extracted firmware: $(cat "$FW_DIR/${MODEL}_${CSC}/.extracted" 2> /dev/null)"
-    LOG "- Latest available firmware: $LATEST_FIRMWARE"
+    LOG_STEP_IN "- $MODEL 모델 $CSC CSC 펌웨어 처리 중..."
+    LOG "- 다운로드된 펌웨어: $(cat "$ODIN_DIR/${MODEL}_${CSC}/.downloaded" 2> /dev/null)"
+    LOG "- 압축 해제된 펌웨어: $(cat "$FW_DIR/${MODEL}_${CSC}/.extracted" 2> /dev/null)"
+    LOG "- 최신 이용 가능 펌웨어: $LATEST_FIRMWARE"
 
     LOG_STEP_IN
 
     if ! $FORCE; then
-        # Skip if firmware has been extracted and equal/newer than the one in FUS
+        # 펌웨어가 이미 압축 해제되었고 서버(FUS)에 있는 것보다 같거나 최신이면 건너뜀
         if [ -f "$FW_DIR/${MODEL}_${CSC}/.extracted" ]; then
             if COMPARE_SEC_BUILD_VERSION "$(cat "$FW_DIR/${MODEL}_${CSC}/.extracted")" "$LATEST_FIRMWARE"; then
-                LOG "\033[0;33m! This firmware has already been extracted, skipping\033[0m"
+                LOG "\033[0;33m! 이 펌웨어는 이미 압축 해제되었습니다. 건너뜁니다\033[0m"
                 LOG_STEP_OUT; LOG_STEP_OUT
                 continue
             fi
         fi
 
-        # Skip if firmware has already been downloaded
+        # 펌웨어가 이미 다운로드되었다면 건너뜀
         if [ -f "$ODIN_DIR/${MODEL}_${CSC}/.downloaded" ]; then
             if ! COMPARE_SEC_BUILD_VERSION "$(cat "$ODIN_DIR/${MODEL}_${CSC}/.downloaded")" "$LATEST_FIRMWARE"; then
-                LOG "\033[0;33m! A newer firmware is available for download, use --force flag if you want to overwrite it\033[0m"
+                LOG "\033[0;33m! 더 최신 펌웨어를 다운로드할 수 있습니다. 덮어쓰려면 --force 플래그를 사용하세요\033[0m"
             else
-                LOG "\033[0;33m! This firmware has already been downloaded\033[0m"
+                LOG "\033[0;33m! 이 펌웨어는 이미 다운로드되었습니다\033[0m"
             fi
             LOG_STEP_OUT; LOG_STEP_OUT
             continue
         fi
     fi
 
-    LOG "- Downloading firmware..."
+    LOG "- 펌웨어 다운로드 중..."
     [ -f "$ODIN_DIR/${MODEL}_${CSC}/.downloaded" ] && rm -rf "$ODIN_DIR/${MODEL}_${CSC}"
     mkdir -p "$ODIN_DIR/${MODEL}_${CSC}"
     # shellcheck disable=SC2164
-    # Anan's samloader stores its logs in the current working directory, let's move into OUT_DIR just for this time
+    # Anan의 samloader는 현재 작업 디렉토리에 로그를 저장하므로, 이번에만 OUT_DIR로 이동함
     (
     cd "$OUT_DIR"
     samloader -m "$MODEL" -r "$CSC" -i "$IMEI" -s "$SERIAL_NO" download -O "$ODIN_DIR/${MODEL}_${CSC}" 1> /dev/null || exit 1
@@ -160,11 +160,11 @@ for i in "${FIRMWARES[@]}"; do
 
     ZIP_FILE="$(find "$ODIN_DIR/${MODEL}_${CSC}" -name "*.zip" | sort -r | head -n 1)"
     if [ ! "$ZIP_FILE" ] || [ ! -f "$ZIP_FILE" ]; then
-        LOG "\033[0;31m! Download failed\033[0m"
+        LOG "\033[0;31m! 다운로드 실패\033[0m"
         exit 1
     fi
 
-    LOG "- Extracting $(basename "$ZIP_FILE")..."
+    LOG "- $(basename "$ZIP_FILE") 압축 해제하는 중..."
     EVAL "unzip -o \"$ZIP_FILE\" -d \"$ODIN_DIR/${MODEL}_${CSC}\" && rm -rf \"$ZIP_FILE\"" || exit 1
 
     VERIFY_ODIN_PACKAGES

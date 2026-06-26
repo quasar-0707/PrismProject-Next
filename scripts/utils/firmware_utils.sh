@@ -6,7 +6,7 @@ source "$SRC_DIR/scripts/utils/build_utils.sh" || return 1
 # ]
 
 # COMPARE_SEC_BUILD_VERSION <string1> <string2>
-# Returns whether or not `string1` build number is older than `string2`.
+# `string1` 빌드 번호가 `string2` 빌드 번호보다 이전(과거) 버전인지 여부를 반환합니다.
 COMPARE_SEC_BUILD_VERSION()
 {
     local STRING1="$1"
@@ -15,15 +15,15 @@ COMPARE_SEC_BUILD_VERSION()
     STRING1="$(cut -d "/" -f 1 -s <<< "$STRING1")"
     STRING2="$(cut -d "/" -f 1 -s <<< "$STRING2")"
 
-    # Samsung Android OS build version scheme works as follows (eg. A528BXXU1DWA4):
-    # - A528B: Model number
-    # - XX: Region (XX = EUR_OPEN)
-    # - U: Firmware type (U = full update, S = security update)
-    # - 1: Rollback protection bit
-    # - D: Major OS version (D = 4th OS rollout)
-    # - W: Year (W = 2023)
-    # - A: Month (A = january)
-    # - 4: Incremental version
+    # 삼성 안드로이드 OS 빌드 버전 규칙은 다음과 같이 구성됩니다 (예: A528BXXU1DWA4):
+    # - A528B: 모델 번호 (Model number)
+    # - XX: 지역 코드 (Region / XX = EUR_OPEN)
+    # - U: 펌웨어 타입 (Firmware type / U = 전체 업데이트, S = 보안 업데이트)
+    # - 1: 롤백 방지 비트 (Rollback protection bit)
+    # - D: 주요 OS 버전 (Major OS version / D = 4번째 OS 출시 버전)
+    # - W: 연도 (Year / W = 2023년)
+    # - A: 월 (Month / A = 1월)
+    # - 4: 순차 빌드 버전 (Incremental version)
     local STRING1_MAJOR="${STRING1:${#STRING1}-4:1}"
     local STRING1_YEAR="${STRING1:${#STRING1}-3:1}"
     local STRING1_MONTH="${STRING1:${#STRING1}-2:1}"
@@ -47,7 +47,7 @@ COMPARE_SEC_BUILD_VERSION()
 }
 
 # EXTRACT_FILE_FROM_TAR <tar> <file>
-# Extract the desidered file from the supplied tar archive.
+# 지정한 tar 아카이브 파일에서 원하는 파일을 추출합니다.
 EXTRACT_FILE_FROM_TAR()
 {
     _CHECK_NON_EMPTY_PARAM "MODEL" "$MODEL" || return 1
@@ -59,7 +59,7 @@ EXTRACT_FILE_FROM_TAR()
     local FILE="$2"
 
     if [ ! -f "$TAR" ]; then
-        LOGE "File not found: ${TAR//$SRC_DIR\//}"
+        LOGE "파일이 존재하지 않습니다: ${TAR//$SRC_DIR\//}"
         return 1
     fi
 
@@ -68,16 +68,16 @@ EXTRACT_FILE_FROM_TAR()
     [ -f "$FW_DIR/${MODEL}_${CSC}/$FILE.lz4" ] && rm -rf "$FW_DIR/${MODEL}_${CSC}/$FILE.lz4"
 
     if FILE_EXISTS_IN_TAR "$TAR" "$FILE"; then
-        LOG "- Extracting $FILE..."
+        LOG "- $FILE 추출 중..."
         EVAL "tar xf \"$TAR\" -C \"$FW_DIR/${MODEL}_${CSC}\" \"$FILE\"" || return 1
     elif FILE_EXISTS_IN_TAR "$TAR" "$FILE.ext4"; then
-        LOG "- Extracting $FILE.ext4..."
+        LOG "- $FILE.ext4 추출 중..."
         EVAL "tar xf \"$TAR\" -C \"$FW_DIR/${MODEL}_${CSC}\" \"$FILE.ext4\"" || return 1
         EVAL "mv -f \"$FW_DIR/${MODEL}_${CSC}/$FILE.ext4\" \"$FW_DIR/${MODEL}_${CSC}/$FILE\"" || return 1
     elif FILE_EXISTS_IN_TAR "$TAR" "$FILE.lz4"; then
-        LOG "- Extracting $FILE.lz4..."
+        LOG "- $FILE.lz4 추출 중..."
         EVAL "tar xf \"$TAR\" -C \"$FW_DIR/${MODEL}_${CSC}\" \"$FILE.lz4\"" || return 1
-        LOG "- Decompressing $FILE.lz4..."
+        LOG "- $FILE.lz4 압축 해제 중..."
         EVAL "lz4 -d --rm \"$FW_DIR/${MODEL}_${CSC}/$FILE.lz4\" \"$FW_DIR/${MODEL}_${CSC}/$FILE\"" || return 1
     fi
 
@@ -85,7 +85,7 @@ EXTRACT_FILE_FROM_TAR()
 }
 
 # FILE_EXISTS_IN_TAR <tar> <file>
-# Returns whether or not the desidered file exists in the supplied tar archive.
+# 지정한 tar 아카이브 파일 내에 원하는 파일이 존재하는지 여부를 반환합니다.
 FILE_EXISTS_IN_TAR()
 {
     _CHECK_NON_EMPTY_PARAM "TAR" "$1" || return 1
@@ -96,7 +96,7 @@ FILE_EXISTS_IN_TAR()
 }
 
 # GET_LATEST_FIRMWARE <model> <csc>
-# Returns the latest available firmware for the supplied model & CSC in the following format: PDA/CSC/MODEM
+# 지정한 모델 및 CSC에 대해 이용 가능한 최신 펌웨어 버전을 PDA/CSC/MODEM 형식으로 반환합니다.
 GET_LATEST_FIRMWARE()
 {
     _CHECK_NON_EMPTY_PARAM "MODEL" "$1" || return 1
@@ -107,45 +107,45 @@ GET_LATEST_FIRMWARE()
 }
 
 # PARSE_FIRMWARE_STRING <string>
-# Parses the supplied string and stores each value in MODEL/CSC/IMEI/SERIAL_NO variables.
-# - The supplied string must be in the following format: <MODEL>/<CSC>/<IMEI/SN>
-# - IMEI/SN that matches the given model is required to download the firmware from FUS
+# 전달받은 문자열을 파싱하여 MODEL, CSC, IMEI, SERIAL_NO 변수에 각각 저장합니다.
+# - 입력할 문자열은 반드시 다음 형식이어야 합니다: <MODEL>/<CSC>/<IMEI 또는 시리얼번호>
+# - FUS 서버로부터 펌웨어를 다운로드하려면 해당 모델과 일치하는 IMEI 또는 시리얼번호(SN)가 필요합니다.
 PARSE_FIRMWARE_STRING()
 {
     local STRING="$1"
 
     if [ ! "$STRING" ]; then
-        LOGE "Firmware value cannot be empty"
+        LOGE "펌웨어 값은 비어 있을 수 없습니다."
         return 1
     fi
 
     MODEL="$(cut -d "/" -f 1 -s <<< "$STRING")"
     if [ ! "$MODEL" ]; then
-        LOGE "No device model value found in \"$STRING\""
+        LOGE "\"$STRING\" 문자열에서 디바이스 모델 값을 찾을 수 없습니다."
         return 1
     fi
 
     CSC="$(cut -d "/" -f 2 -s <<< "$STRING")"
     if [ ! "$CSC" ]; then
-        LOGE "No CSC value found in \"$STRING\""
+        LOGE "\"$STRING\" 문자열에서 CSC 값을 찾을 수 없습니다."
         return 1
     elif [[ "${#CSC}" != "3" ]]; then
-        LOGE "CSC not valid in \"$STRING\": $CSC"
+        LOGE "\"$STRING\" 내의 CSC 값이 올바르지 않습니다: $CSC"
         return 1
     fi
 
     local THIRD
     THIRD="$(cut -d "/" -f 3 -s <<< "$STRING")"
     if [ ! "$THIRD" ]; then
-        LOGE "No IMEI/SN value found in \"$STRING\""
+        LOGE "\"$STRING\" 문자열에서 IMEI 또는 시리얼번호(SN) 값을 찾을 수 없습니다"
         return 1
     elif [[ "${#THIRD}" == "11" ]] && [[ "$THIRD" == "R"* ]]; then
         SERIAL_NO="$THIRD"
     elif [[ "${#THIRD}" -ge "8" ]] && [[ "${#THIRD}" -le "15" ]] && [[ "$THIRD" =~ ^[+-]?[0-9]+$ ]]; then
-        # Allow uncomplete IMEIs as samloader can generate them by providing the first 8 numbers (TAC)
+        # samloader가 앞 8자리 숫자(TAC)만으로도 나머지 자리를 생성할 수 있으므로, 불완전한 IMEI 형태도 허용합니다.
         IMEI="$THIRD"
     else
-        LOGE "No valid IMEI/SN in \"$STRING\": $THIRD"
+        LOGE "\"$STRING\" 내에 올바른 형신의 IMEI 또는 시리얼번호(SN)가 없습니다: $THIRD"
         return 1
     fi
 
@@ -153,7 +153,7 @@ PARSE_FIRMWARE_STRING()
 }
 
 # UNSPARSE_IMAGE <file> [output]
-# Unsparse the supplied file, a different output path can be provided optionally.
+# Sparse 형태의 안드로이드 이미지를 일반 이미지로 복원합니다. 선택적으로 별도의 출력 경로를 지정할 수 있습니다.
 UNSPARSE_IMAGE()
 {
     _CHECK_NON_EMPTY_PARAM "FILE" "$1" || exit 1
@@ -163,12 +163,12 @@ UNSPARSE_IMAGE()
     local REPLACE=false
 
     if [ ! -f "$FILE" ]; then
-        LOGE "File not found: ${FILE//$SRC_DIR\//}"
+        LOGE "파일이 존재하지 않습니다: ${FILE//$SRC_DIR\//}"
         return 1
     fi
 
     if ! IS_SPARSE_IMAGE "$FILE"; then
-        LOGW "Not a Android sparse image: ${FILE//$SRC_DIR\//}"
+        LOGW "올바른 안드로이드 sparse 이미지가 아닙니다: ${FILE//$SRC_DIR\//}"
         return 0
     fi
 
@@ -177,7 +177,7 @@ UNSPARSE_IMAGE()
         REPLACE=true
     fi
 
-    LOG "- Unsparsing $(basename "$FILE")..."
+    LOG "- $(basename "$FILE") 파일 unsparse 중..."
 
     EVAL "simg2img \"$FILE\" \"$OUTPUT_PATH\"" || return 1
     if $REPLACE; then

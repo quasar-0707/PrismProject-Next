@@ -25,17 +25,17 @@ THREAD_COUNT=$(awk -v max="$(nproc)" '/MemTotal/ {
 BUILD()
 {
     if [ ! -d "$OUTPUT_PATH" ]; then
-        LOGE "Folder not found: ${OUTPUT_PATH//$SRC_DIR\//}"
+        LOGE "폴더가 존재하지 않습니다: ${OUTPUT_PATH//$SRC_DIR\//}"
         exit 1
     fi
 
-    LOG "- Building ${INPUT_FILE//$WORK_DIR/}"
+    LOG "- ${INPUT_FILE//$WORK_DIR/} 빌드 중..."
 
-    # Copy original META-INF
+    # 원본 META-INF 복사
     mkdir -p "$OUTPUT_PATH/build/apk"
     cp -a "$OUTPUT_PATH/original/META-INF" "$OUTPUT_PATH/build/apk/META-INF"
 
-    # Build APK with --shorten-resource-paths (https://developer.android.com/tools/aapt2#optimize_options)
+    # --shorten-resource-paths 옵션을 사용하여 APK 빌드 (https://developer.android.com/tools/aapt2#optimize_options)
     EVAL "apktool b -j \"$THREAD_COUNT\" -p \"$FRAMEWORK_DIR\" -srp \"$OUTPUT_PATH\"" || exit 1
 
     local FILE_NAME
@@ -45,11 +45,11 @@ BUILD()
         local CERT_PREFIX="aosp"
         $ROM_IS_OFFICIAL && CERT_PREFIX="unica"
 
-        LOG "- Signing ${INPUT_FILE//$WORK_DIR/}"
+        LOG "- ${INPUT_FILE//$WORK_DIR/} 서명 중..."
         EVAL "signapk \"$SRC_DIR/security/${CERT_PREFIX}_platform.x509.pem\" \"$SRC_DIR/security/${CERT_PREFIX}_platform.pk8\" \"$OUTPUT_PATH/dist/$FILE_NAME\" \"$OUTPUT_PATH/dist/temp.apk\"" || exit 1
         mv -f "$OUTPUT_PATH/dist/temp.apk" "$OUTPUT_PATH/dist/$FILE_NAME"
     else
-        LOG "- Zipaligning ${INPUT_FILE//$WORK_DIR/}"
+        LOG "- ${INPUT_FILE//$WORK_DIR/} Zipalign 적용 중..."
         EVAL "zipalign -p 4 \"$OUTPUT_PATH/dist/$FILE_NAME\" \"$OUTPUT_PATH/dist/temp\"" || exit 1
         mv -f "$OUTPUT_PATH/dist/temp" "$OUTPUT_PATH/dist/$FILE_NAME"
     fi
@@ -72,29 +72,29 @@ BUILD()
 DECODE()
 {
     if [ ! -f "$INPUT_FILE" ]; then
-        LOGE "File not found: ${INPUT_FILE//$WORK_DIR/}"
+        LOGE "파일이 존재하지 않습니다: ${INPUT_FILE//$WORK_DIR/}"
         exit 1
     elif [ -d "$OUTPUT_PATH" ]; then
         if $FORCE; then
             rm -rf "$OUTPUT_PATH"
         else
-            LOGE "Output directory already exists (${OUTPUT_PATH//$SRC_DIR\//}). Use --force flag if you want to overwrite it."
+            LOGE "출력 디렉토리가 이미 존재합니다. (${OUTPUT_PATH//$SRC_DIR\//}) 덮어쓰려면 --force 플래그를 사용하세요."
             exit 1
         fi
     fi
 
     if [[ "$(READ_BYTES_AT "$INPUT_FILE" "0" "4")" != "04034b50" ]]; then
-        LOGE "File not valid: ${INPUT_FILE//$WORK_DIR/}"
+        LOGE "유효하지 않은 파일입니다: ${INPUT_FILE//$WORK_DIR/}"
         exit 1
     fi
 
-    LOG "- Decoding ${INPUT_FILE//$WORK_DIR/}"
+    LOG "- ${INPUT_FILE//$WORK_DIR/} 디코딩 중..."
 
-    # Decode APK with --no-debug-info, which will disassemble DEX file with the following flags:
-    # - Disabled synthetic accessors comments
-    # - Disabled debug info
-    # - Use .locals directive instead of the .registers one
-    # - Use a sequential numbering scheme for labels
+    # --no-debug-info 옵션으로 APK 디코딩 (다음 플래그들을 사용하여 DEX 파일을 디스어셈블함):
+    # - 합성 접근자 주석 비활성화
+    # - 디버그 정보 비활성화
+    # - .registers 지시어 대신 .locals 지시어 사용
+    # - 레이블에 순차적인 넘버링 방식 사용
     EVAL "apktool d --no-debug-info -j \"$THREAD_COUNT\" -o \"$OUTPUT_PATH\" -p \"$FRAMEWORK_DIR\" -t \"$FRAMEWORK_TAG\" \"$INPUT_FILE\"" || exit 1
 }
 
@@ -124,7 +124,7 @@ PREPARE_SCRIPT()
         PRINT_USAGE
         exit 1
     elif ! IS_VALID_PARTITION_NAME "$PARTITION"; then
-        LOGE "\"$PARTITION\" is not a valid partition name"
+        LOGE "\"$PARTITION\"은(는) 올바른 파티션 이름이 아닙니다."
         exit 1
     fi
 
@@ -161,8 +161,8 @@ PREPARE_SCRIPT()
 
 PRINT_USAGE()
 {
-    echo "Usage: apktool d[ecode]/b[uild] [options] <partition> <file>" >&2
-    echo " -f, --force : Force delete output directory" >&2
+    echo "사용 예제: apktool d[ecode]/b[uild] [옵션] <파티션> <파일>" >&2
+    echo " -f, --force : 출력 디렉토리 강제 삭제" >&2
 }
 # ]
 
@@ -171,10 +171,10 @@ ACTION=""
 PREPARE_SCRIPT "$@"
 
 if [ ! "$FRAMEWORK_TAG" ]; then
-    LOGE "Work dir needs to be set up before using this script"
+    LOGE "이 스크립트를 사용하기 전에 작업 디렉토리를 먼저 설정해야 합니다."
     exit 1
 elif [ ! -f "$FRAMEWORK_DIR/1-$FRAMEWORK_TAG.apk" ]; then
-    LOGW "framework-res.apk for \"$FRAMEWORK_TAG\" not found, installing"
+    LOGW "\"$FRAMEWORK_TAG\"에 대한 framework-res.apk를 찾을 수 없습니다. 새로 설치합니다."
     EVAL "apktool if -p \"$FRAMEWORK_DIR\" -t \"$FRAMEWORK_TAG\" \"$WORK_DIR/system/system/framework/framework-res.apk\"" || exit 1
 fi
 

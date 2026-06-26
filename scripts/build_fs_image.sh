@@ -25,7 +25,7 @@ BUILD_IMAGE_MKFS()
     local SPARSE=$SPARSE
     local MANUAL_SPARSE=false
 
-    # Avoid OOM errors when building as sparse image
+    # sparse 이미지 빌드 시 OOM(메모리 부족) 에러 방지
     if $SPARSE && [[ "$(awk '/MemTotal/ { print int ($2 / 1024) }' "/proc/meminfo")" -lt "10240" ]]; then
         SPARSE=false
         MANUAL_SPARSE=true
@@ -59,7 +59,7 @@ BUILD_IMAGE_MKFS()
             BUILD_CMD+="--inode_size \"256\" "
             BUILD_CMD+="\"$FILE_CONTEXT_FILE\""
 
-            # Avoid build failures if lost+found entry is not in file_context/fs_config
+            # lost+found 항목이 file_context/fs_config에 없을 경우 발생할 수 있는 빌드 실패 방지
             if ! grep -q -F "lost+found" "$FILE_CONTEXT_FILE"; then
                 if [[ "$PARTITION" == "system" ]]; then
                     echo "/lost\+found u:object_r:rootfs:s0" >> "$FILE_CONTEXT_FILE"
@@ -84,14 +84,14 @@ BUILD_IMAGE_MKFS()
             BUILD_CMD+="--mount-point \"$MOUNT_POINT\" "
             BUILD_CMD+="--fs-config-file \"$FS_CONFIG_FILE\" "
             BUILD_CMD+="--file-contexts \"$FILE_CONTEXT_FILE\" "
-            # Samsung uses a different default fixed timestamp for erofs/f2fs
+            # 삼성은 erofs/f2fs에 다른 고정 기본 타임스탬프를 사용함
             BUILD_CMD+="-T \"1640995200\" "
             if $MAP_FILE; then
                 BUILD_CMD+="--block-list-file \"${OUTPUT_FILE//.img/.map}\" "
             fi
             BUILD_CMD+="\"$OUTPUT_FILE\" \"$INPUT_DIR\""
 
-            # mkfs.erofs has no built-in sparse support
+            # mkfs.erofs는 자체적인 sparse 기능을 지원하지 않음
             if $SPARSE; then
                 MANUAL_SPARSE=true
             fi
@@ -106,7 +106,7 @@ BUILD_IMAGE_MKFS()
             BUILD_CMD+="-f \"$INPUT_DIR\" "
             BUILD_CMD+="-s \"$FILE_CONTEXT_FILE\" "
             BUILD_CMD+="-t \"$MOUNT_POINT\" "
-            # Samsung uses a different default fixed timestamp for erofs/f2fs
+            # 삼성은 erofs/f2fs에 다른 고정 기본 타임스탬프를 사용함
             BUILD_CMD+="-T \"1640995200\" "
             if $MAP_FILE; then
                 BUILD_CMD+="-B \"${OUTPUT_FILE//.img/.map}\" "
@@ -116,7 +116,7 @@ BUILD_IMAGE_MKFS()
             BUILD_CMD+="--readonly "
             BUILD_CMD+="-b \"4096\""
 
-            # Usual f2fs f***-ups
+            # 자주 발생하는 f2fs의 꼬임 현상 해결
             if [[ "$PARTITION" != "system" ]] && ! grep -q "^/$PARTITION/$PARTITION " "$FILE_CONTEXT_FILE"; then
                 echo "/$PARTITION/$PARTITION $(head -n 1 "$FILE_CONTEXT_FILE" | cut -d " " -f 2)" >> "$FILE_CONTEXT_FILE"
             fi
@@ -145,14 +145,14 @@ CALCULATE_AVB_MIN_PARTITION_SIZE()
     local HIGH
     local DELTA
 
-    # Use image size as partition size to approximate final partition size.
+    # 최종 파티션 크기를 근사치로 구하기 위해 이미지 크기를 파티션 크기로 가정함.
     IMAGE_RATIO="$(bc -l <<< "$(CALCULATE_AVB_MAX_IMAGE_SIZE "$IMAGE_SIZE") / $IMAGE_SIZE")"
 
-    # Prepare a binary search for the optimal partition size.
+    # 최적의 파티션 크기를 찾기 위한 이진 탐색(Binary Search) 준비.
     LOW="$(bc -l <<< "scale=0; $(bc -l <<< "$IMAGE_SIZE / $IMAGE_RATIO") / 4096")"
     LOW="$(bc -l <<< "($LOW * 4096) - 4096")"
 
-    # Ensure lo is small enough: max_image_size should <= image_size.
+    # lo 값이 충분히 작은지 확인: max_image_size는 <= image_size여야 함.
     DELTA="4096"
     MAX_IMAGE_SIZE="$(CALCULATE_AVB_MAX_IMAGE_SIZE "$LOW")"
     while [[ "$MAX_IMAGE_SIZE" -gt "$IMAGE_SIZE" ]]; do
@@ -165,7 +165,7 @@ CALCULATE_AVB_MIN_PARTITION_SIZE()
 
     HIGH="$(bc -l <<< "$LOW + 4096")"
 
-    # Ensure hi is large enough: max_image_size should >= image_size.
+    # hi 값이 충분히 큰지 확인: max_image_size는 >= image_size여야 함
     DELTA="4096"
     MAX_IMAGE_SIZE="$(CALCULATE_AVB_MAX_IMAGE_SIZE "$HIGH")"
     while [[ "$MAX_IMAGE_SIZE" -lt "$IMAGE_SIZE" ]]; do
@@ -178,13 +178,13 @@ CALCULATE_AVB_MIN_PARTITION_SIZE()
 
     PARTITION_SIZE="$HIGH"
 
-    # Start to binary search.
+    # 이진 탐색 시작
     while [[ "$LOW" -lt "$HIGH" ]]; do
         MID="$(bc -l <<< "scale=0; ($(bc -l <<< "$LOW + $HIGH")) / (2 * 4096)")"
         MID="$(bc -l <<< "$MID * 4096")"
         MAX_IMAGE_SIZE="$(CALCULATE_AVB_MAX_IMAGE_SIZE "$MID")"
-        if [[ "$MAX_IMAGE_SIZE" -ge "$IMAGE_SIZE" ]]; then # if mid can accommodate image_size
-            if [[ "$MID" -lt "$PARTITION_SIZE" ]]; then # if a smaller partition size is found
+        if [[ "$MAX_IMAGE_SIZE" -ge "$IMAGE_SIZE" ]]; then # mid가 image_size를 감당할 수 있는 경우
+            if [[ "$MID" -lt "$PARTITION_SIZE" ]]; then # 더 작은 파티션 크기를 찾은 경우
                 PARTITION_SIZE="$MID"
             fi
             HIGH="$MID"
@@ -201,14 +201,14 @@ CALCULATE_SIZE_AND_RESERVED()
 {
     local SIZE="$1"
 
-    # Assume reserved partition size is not set
+    # 예약된 파티션 크기가 설정되지 않았다고 가정함
     if [[ "$FS_TYPE" == "erofs" ]]; then
-        # give .3% margin or a minimum size for AVB footer
+        # AVB 푸터를 위해 0.3%의 마진 또는 최소 크기를 부여함
         SIZE="$(bc -l <<< "scale=0; ($SIZE * 1003) / 1000")"
         [[ "$SIZE" -lt "262144" ]] && SIZE="262144"
     else
-        SIZE="$(bc -l <<< "scale=0; ($SIZE * 1.1) / 1")" # 10% headroom to avoid failures
-        SIZE="$(bc -l <<< "$SIZE + 16777216")" # add 16 MB of reserved space
+        SIZE="$(bc -l <<< "scale=0; ($SIZE * 1.1) / 1")" # 빌드 실패를 방지하기 위해 10%의 여유 공간 추가
+        SIZE="$(bc -l <<< "$SIZE + 16777216")" # 16 MB의 예약 공간 추가
     fi
 
     echo "$SIZE"
@@ -254,7 +254,7 @@ PREPARE_SCRIPT()
     if [[ "$FS_TYPE" != "ext4" ]] && \
             [[ "$FS_TYPE" != "f2fs" ]] && \
             [[ "$FS_TYPE" != "erofs" ]]; then
-        LOGE "Unsupported file system type: $FS_TYPE"
+        LOGE "지원하지 않는 파일 시스템 유형입니다: $FS_TYPE"
         exit 1
     fi
 
@@ -273,33 +273,33 @@ PREPARE_SCRIPT()
         elif [[ "$1" == "--inodes" ]] || [[ "$1" == "-i" ]]; then
             shift; INODES="$1"
             if ! [[ "$INODES" =~ ^[+-]?[0-9]+$ ]]; then
-                LOGE "Inodes number not valid: $INODES"
+                LOGE "유효하지 않은 아이노드 개수입니다: $INODES"
                 exit 1
             elif [[ "$FS_TYPE" != "ext4" ]]; then
-                LOGW "Ignore inodes number flag as file system type is $FS_TYPE"
+                LOGW "파일 시스템 유형이 $FS_TYPE 이므로 아이노드 개수 플래그를 무시합니다."
             fi
         elif [[ "$1" == "--output" ]] || [[ "$1" == "-o" ]]; then
             shift; OUTPUT_FILE="$1"
             if [[ "$OUTPUT_FILE" != *".img" ]]; then
-                LOGE "Output file name must have \".img\" extension"
+                LOGE "출력 파일은 반드시 \".img\" 확장자여야 합니다."
                 exit 1
             fi
         elif [[ "$1" == "--partition-name" ]] || [[ "$1" == "-p" ]]; then
             shift; PARTITION="$1"
             if ! IS_VALID_PARTITION_NAME "$PARTITION"; then
-                LOGE "\"$PARTITION\" is not a valid partition name"
+                LOGE "\"$PARTITION\"은(는) 올바른 파티션 이름이 아닙니다."
                 exit 1
             fi
         elif [[ "$1" == "--partition-size" ]] || [[ "$1" == "-s" ]]; then
             shift; IMAGE_SIZE="$1"
             if ! [[ "$IMAGE_SIZE" =~ ^[+-]?[0-9]+$ ]]; then
-                LOGE "Partition size not valid: $IMAGE_SIZE"
+                LOGE "유효하지 않은 파티션 크기입니다: $IMAGE_SIZE"
                 exit 1
             fi
         elif [[ "$1" == "--sparse" ]] || [[ "$1" == "-S" ]]; then
             SPARSE=true
         else
-            LOGE "Unknown option: $1"
+            LOGE "알 수 없는 옵션입니다: $1"
             exit 1
         fi
 
@@ -319,7 +319,7 @@ PREPARE_SCRIPT()
         PRINT_USAGE
         exit 1
     elif [ ! -d "$INPUT_DIR" ]; then
-        LOGE "Folder not found: ${INPUT_DIR//$SRC_DIR\//}"
+        LOGE "폴더가 존재하지 않습니다: ${INPUT_DIR//$SRC_DIR\//}"
         exit 1
     fi
 
@@ -328,7 +328,7 @@ PREPARE_SCRIPT()
     if [ ! "$PARTITION" ]; then
         PARTITION="$(basename "$INPUT_DIR")"
         if ! IS_VALID_PARTITION_NAME "$PARTITION"; then
-            LOGE "\"$PARTITION\" is not a valid partition name. please set --partition-name manually"
+            LOGE "\"$PARTITION\"은(는) 올바른 파티션 이름이 아닙니다. --partition-name을 수동으로 설정해주세요."
             exit 1
         fi
     fi
@@ -345,7 +345,7 @@ PREPARE_SCRIPT()
         if $FORCE; then
             rm -rf "$OUTPUT_FILE"
         else
-            LOGE "Output file already exists (${OUTPUT_FILE//$SRC_DIR\//}). Use --force flag if you want to overwrite it."
+            LOGE "출력 파일이 이미 존재합니다. (${OUTPUT_FILE//$SRC_DIR\//}) 덮어쓰려면 --force 플래그를 사용하세요."
             exit 1
         fi
     fi
@@ -355,7 +355,7 @@ PREPARE_SCRIPT()
         PRINT_USAGE
         exit 1
     elif [ ! -f "$FILE_CONTEXT_FILE" ]; then
-        LOGE "File not found: ${FILE_CONTEXT_FILE//$SRC_DIR\//}"
+        LOGE "파일이 존재하지 않습니다: ${FILE_CONTEXT_FILE//$SRC_DIR\//}"
         exit 1
     fi
 
@@ -366,22 +366,22 @@ PREPARE_SCRIPT()
         PRINT_USAGE
         exit 1
     elif [ ! -f "$FS_CONFIG_FILE" ]; then
-        LOGE "File not found: ${FS_CONFIG_FILE//$SRC_DIR\//}"
+        LOGE "파일이 존재하지 않습니다: ${FS_CONFIG_FILE//$SRC_DIR\//}"
         exit 1
     fi
 }
 
 PRINT_USAGE()
 {
-    echo "Usage: build_fs_image <fs> [options] <dir> <file_context> <fs_config>" >&2
-    echo " --avb/--no-avb : Enables/disables AVB signing" >&2
-    echo " -f, --force : Force delete output file" >&2
-    echo " -i, --inodes : (ext4 only) Specify the extfs inodes count" >&2
-    echo " -m, --generate-map : Generates block map file" >&2
-    echo " -o, --output : Specify the output image path, defaults to the parent input directory" >&2
-    echo " -p, --partition-name : Specify the partition name, defaults to the input directory name" >&2
-    echo " -s, --partition-size : Specify the partition size, defaults to the smallest possible" >&2
-    echo " -S, --sparse : Outputs an Android sparse image" >&2
+    echo "사용 예제: build_fs_image <fs> [옵션] <디렉토리> <file_context> <fs_config>" >&2
+    echo " --avb/--no-avb       : AVB 서명을 활성화/비활성화합니다." >&2
+    echo " -f, --force          : 출력 파일을 강제로 삭제하고 덮어씁니다." >&2
+    echo " -i, --inodes         : (ext4 전용) extfs 아이노드 개수를 지정합니다." >&2
+    echo " -m, --generate-map   : 블록 맵 파일을 생성합니다." >&2
+    echo " -o, --output         : 출력 이미지 경로를 지정합니다. 기본값은 상위 입력 디렉토리입니다." >&2
+    echo " -p, --partition-name : 파티션 이름을 지정합니다. 기본값은 입력 디렉토리 이름입니다." >&2
+    echo " -s, --partition-size : 파티션 크기를 지정합니다. 기본값은 가능한 가장 작은 크기입니다." >&2
+    echo " -S, --sparse         : 안드로이드 sparse 이미지 형식으로 출력합니다." >&2
 }
 
 # https://android.googlesource.com/platform/build/+/refs/tags/android-15.0.0_r1/tools/releasetools/common.py#334
@@ -397,13 +397,13 @@ ROUND_UP_TO_4K()
 PREPARE_SCRIPT "$@"
 
 if $SPARSE; then
-    LOG_STEP_IN "- Starting build_fs_image for $(basename "$OUTPUT_FILE") ($FS_TYPE+sparse)..."
+    LOG_STEP_IN "- $(basename "$OUTPUT_FILE") 작업에 대한 build_fs_image 시작 중... ($FS_TYPE+sparse)"
 else
-    LOG_STEP_IN "- Starting build_fs_image for $(basename "$OUTPUT_FILE") ($FS_TYPE)..."
+    LOG_STEP_IN "- $(basename "$OUTPUT_FILE") 작업에 대한 build_fs_image 시작 중... ($FS_TYPE)"
 fi
 
 if [ ! "$IMAGE_SIZE" ]; then
-    LOG_STEP_IN "! Partition size is not set, detecting minimum size"
+    LOG_STEP_IN "! 파티션 크기가 설정되지 않아 최소 크기를 감지합니다"
 
     if [[ "$FS_TYPE" == "erofs" ]]; then
         BUILD_IMAGE_MKFS
@@ -412,7 +412,7 @@ if [ ! "$IMAGE_SIZE" ]; then
         IMAGE_SIZE="$(GET_DISK_USAGE "$INPUT_DIR")"
     fi
 
-    LOG "- The tree size of $(basename "$OUTPUT_FILE") is $IMAGE_SIZE bytes ($(bc -l <<< "scale=0; $IMAGE_SIZE / 1048576") MB)"
+    LOG "- $(basename "$OUTPUT_FILE")의 트리 크기는 $IMAGE_SIZE 바이트입니다. ($(bc -l <<< "scale=0; $IMAGE_SIZE / 1048576") MB)"
 
     IMAGE_SIZE="$(CALCULATE_SIZE_AND_RESERVED "$IMAGE_SIZE")"
     IMAGE_SIZE="$(ROUND_UP_TO_4K "$IMAGE_SIZE")"
@@ -422,7 +422,7 @@ if [ ! "$IMAGE_SIZE" ]; then
             INODES="$(GET_INODE_USAGE "$INPUT_DIR")"
         fi
 
-        LOG "- First pass based on estimates of $IMAGE_SIZE bytes ($(bc -l <<< "scale=0; $IMAGE_SIZE / 1048576") MB) and $INODES inodes"
+        LOG "- 예상치인 $IMAGE_SIZE 바이트 ($(bc -l <<< "scale=0; $IMAGE_SIZE / 1048576") MB) 및 $INODES 아이노드를 기반으로 1차 패스를 수행합니다."
         SPARSE=false BUILD_IMAGE_MKFS
 
         IMAGE_INFO="$(tune2fs -l "$OUTPUT_FILE")"
@@ -443,12 +443,12 @@ if [ ! "$IMAGE_SIZE" ]; then
         [[ "$SPARE_INODES" -lt 1 ]] && SPARE_INODES=1
         INODES="$(bc -l <<< "$INODES + $SPARE_INODES")"
 
-        LOG "- Allocating $INODES inodes for $(basename "$OUTPUT_FILE")"
+        LOG "- $(basename "$OUTPUT_FILE")에 대해 $INODES 아이노드를 할당합니다"
     elif [[ "$FS_TYPE" == "f2fs" ]]; then
-        # HACK f2fs doesn't seems to like images smaller than 22 MB
+        # f2fs는 22MB보다 작은 이미지 크기를 선호하지 않는 듯함
         [[ "$IMAGE_SIZE" -lt "23068672" ]] && IMAGE_SIZE="23068672"
 
-        LOG "- First pass based on estimate of $IMAGE_SIZE bytes ($(bc -l <<< "scale=0; $IMAGE_SIZE / 1048576") MB)"
+        LOG "- 예상치인 $IMAGE_SIZE 바이트 ($(bc -l <<< "scale=0; $IMAGE_SIZE / 1048576") MB)를 기반으로 1차 패스를 수행합니다."
         SPARSE=false BUILD_IMAGE_MKFS
 
         IMAGE_INFO="$(fsck.f2fs -l "$OUTPUT_FILE")"
@@ -465,12 +465,12 @@ if [ ! "$IMAGE_SIZE" ]; then
         IMAGE_SIZE="$(CALCULATE_AVB_MIN_PARTITION_SIZE)"
     fi
 
-    LOG "- Allocating $IMAGE_SIZE bytes ($(bc -l <<< "scale=0; $IMAGE_SIZE / 1048576") MB) for $(basename "$OUTPUT_FILE")"
+    LOG "- $(basename "$OUTPUT_FILE")에 대해 $IMAGE_SIZE 바이트 ($(bc -l <<< "scale=0; $IMAGE_SIZE / 1048576") MB)를 할당합니다."
 
     LOG_STEP_OUT
 fi
 
-LOG "- Building image"
+LOG "- 이미지 빌드 중..."
 if [ ! -f "$OUTPUT_FILE" ]; then
     if $AVB_SIGN; then
         IMAGE_SIZE="$(CALCULATE_AVB_MAX_IMAGE_SIZE "$IMAGE_SIZE")" BUILD_IMAGE_MKFS
@@ -480,7 +480,7 @@ if [ ! -f "$OUTPUT_FILE" ]; then
 fi
 
 if $AVB_SIGN; then
-    LOG "- Signing image with AVB"
+    LOG "- AVB를 사용하여 이미지 서명 중..."
     EVAL "$(GET_AVBTOOL_CMD)" || exit 1
 fi
 
