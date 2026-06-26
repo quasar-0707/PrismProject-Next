@@ -156,8 +156,8 @@ fi
 
 if $BUILD_TARGET_FILES || $BUILD_FLASHABLE_ZIP; then
     ZIP_FILE_NAME="${TARGET_CODENAME}_"
-    if [ "$(GET_PROP "system" "ro.unica.version")" ]; then
-        ZIP_FILE_NAME+="$(GET_PROP "system" "ro.unica.version")"
+    if [ "$(GET_PROP "system" "ro.prismproject.version")" ]; then
+        ZIP_FILE_NAME+="$(GET_PROP "system" "ro.prismproject.version")"
     else
         ZIP_FILE_NAME+="$ROM_VERSION"
     fi

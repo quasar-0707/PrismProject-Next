@@ -69,13 +69,13 @@ GENERATE_BUILD_INFO()
 
     {
         echo -n "device="
-        [ "$(GET_PROP "system" "ro.unica.device")" ] && GET_PROP "system" "ro.unica.device" || echo "$TARGET_CODENAME"
+        [ "$(GET_PROP "system" "ro.prismproject.device")" ] && GET_PROP "system" "ro.prismproject.device" || echo "$TARGET_CODENAME"
         [ "$TARGET_ASSERT_MODEL" ] && echo "model=${TARGET_ASSERT_MODEL//:/;}"
         echo "name=$TARGET_NAME"
         echo -n "version="
-        [ "$(GET_PROP "system" "ro.unica.version")" ] && GET_PROP "system" "ro.unica.version" || echo "$ROM_VERSION"
+        [ "$(GET_PROP "system" "ro.prismproject.version")" ] && GET_PROP "system" "ro.prismproject.version" || echo "$ROM_VERSION"
         echo -n "timestamp="
-        [ "$(GET_PROP "system" "ro.unica.timestamp")" ] && GET_PROP "system" "ro.unica.timestamp" || echo "$ROM_BUILD_TIMESTAMP"
+        [ "$(GET_PROP "system" "ro.prismproject.timestamp")" ] && GET_PROP "system" "ro.prismproject.timestamp" || echo "$ROM_BUILD_TIMESTAMP"
         echo "os_version=$(GET_PROP "system" "ro.build.version.release")"
         echo "oneui_version=$(GET_PROP "system" "ro.build.version.oneui")"
         echo "build_incremental=$(GET_PROP "system" "ro.build.version.incremental")"

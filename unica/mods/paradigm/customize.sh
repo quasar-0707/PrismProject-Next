@@ -1,7 +1,7 @@
-if [ ! "$(GET_PROP "system" "ro.unica.codename")" ]; then
+if [ ! "$(GET_PROP "system" "ro.prismproject.codename")" ]; then
     # 최신 삼성 플래그십 기기의 코드네임과 일치시킴
     ROM_CODENAME="$(basename "$MODPATH")"
-    SET_PROP "system" "ro.unica.codename" "${ROM_CODENAME^}"
+    SET_PROP "system" "ro.prismproject.codename" "${ROM_CODENAME^}"
     unset ROM_CODENAME
 fi
 
