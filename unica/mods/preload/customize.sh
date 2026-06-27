@@ -15,7 +15,7 @@ while IFS= read -r i; do
 
     if [[ "$i" == *".apk" ]] && \
             ! grep -q "$i" "$WORK_DIR/system/system/etc/vpl_apks_count_list.txt"; then
-        LOG "- Adding \"$i\" to /system/system/etc/vpl_apks_count_list.txt"
+        LOG "- \"$i\"을 /system/system/etc/vpl_apks_count_list.txt에 추가 중..."
         EVAL "echo \"$i\" >> \"$WORK_DIR/system/system/etc/vpl_apks_count_list.txt\""
     fi
 done <<< "$(find "$WORK_DIR/system/system/preload")"
