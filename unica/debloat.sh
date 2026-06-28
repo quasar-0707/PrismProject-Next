@@ -377,11 +377,6 @@ SYSTEM_DEBLOAT+="
 system/app/SimAppDialog
 "
 
-# Traceur
-SYSTEM_DEBLOAT+="
-system/app/Traceur
-"
-
 # UniversalMDMClient
 SYSTEM_DEBLOAT+="
 system/app/UniversalMDMClient
