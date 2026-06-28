@@ -226,13 +226,6 @@ system/etc/permissions/signature-permissions-com.samsung.android.offline.languag
 system/priv-app/OfflineLanguageModel_stub
 "
 
-# Samsung Messages
-SYSTEM_DEBLOAT+="
-system/etc/default-permissions/default-permissions-com.samsung.android.messaging.xml
-system/etc/permissions/privapp-permissions-com.samsung.android.messaging.xml
-system/priv-app/SamsungMessages
-"
-
 # Samsung Pass
 SYSTEM_DEBLOAT+="
 system/app/SamsungPassAutofill_v1
@@ -313,6 +306,7 @@ SET_FLOATING_FEATURE_CONFIG "SEC_FLOATING_FEATURE_COMMON_CONFIG_SMARTTUTOR_PACKA
 SYSTEM_DEBLOAT+="
 system/etc/permissions/privapp-permissions-com.wssyncmldm.xml
 system/priv-app/FotaAgent
+system/priv-app/SOAgent75
 "
 
 # SVC Agent
@@ -335,4 +329,122 @@ system/etc/sysconfig/feature-a11y-preload-voacc.xml
 # YouTube
 PRODUCT_DEBLOAT+="
 app/YouTube
+"
+
+# CarrierDefaultApp
+SYSTEM_DEBLOAT+="
+system/app/CarrierDefaultApp
+"
+
+# ccinfo
+SYSTEM_DEBLOAT+="
+system/app/ccinfo
+"
+
+# ChromeCustomizations
+SYSTEM_DEBLOAT+="
+system/app/ChromeCustomizations
+"
+
+# Fast
+SYSTEM_DEBLOAT+="
+system/app/Fast
+"
+
+# Samsung Kids
+SYSTEM_DEBLOAT+="
+system/etc/permissions/signature-permissions-com.sec.android.app.kidshome.xml
+system/app/KidsHome_Installer
+"
+
+# MDMApp
+SYSTEM_DEBLOAT+="
+system/app/MDMApp
+"
+
+# Knox Matrix
+SYSTEM_DEBLOAT+="
+system/app/Rampart
+"
+
+# SilentLog
+SYSTEM_DEBLOAT+="
+system/app/SilentLog
+"
+
+# SimAppDialog
+SYSTEM_DEBLOAT+="
+system/app/SimAppDialog
+"
+
+# Traceur
+SYSTEM_DEBLOAT+="
+system/app/Traceur
+"
+
+# UniversalMDMClient
+SYSTEM_DEBLOAT+="
+system/app/UniversalMDMClient
+"
+
+# WifiGuider
+SYSTEM_DEBLOAT+="
+system/app/WifiGuider
+"
+
+# CpAgent
+SYSTEM_DEBLOAT+="
+system/priv-app/CpAgent
+"
+
+# DiagMonAgent
+SYSTEM_DEBLOAT+="
+system/etc/permissions/privapp-permissions-com.sec.android.diagmonagent.xml
+system/priv-app/DiagMonAgent94
+"
+
+# EnhancedAttestationAgent
+SYSTEM_DEBLOAT+="
+system/priv-app/EnhancedAttestationAgent
+"
+
+# ImsLogger
+SYSTEM_DEBLOAT+="
+system/etc/permissions/privapp-permissions-com.sec.imslogger.xml
+system/priv-app/ImsLogger
+"
+
+# OMCAgent
+SYSTEM_DEBLOAT+="
+system/etc/permissions/privapp-permissions-com.samsung.android.app.omcagent.xml
+system/priv-app/OMCAgent5
+"
+
+# Samsung Positioning
+SYSTEM_DEBLOAT+="
+system/etc/permissions/privapp-permissions-com.samsung.android.samsungpositioning.xml
+system/priv-app/SamsungPositioning
+"
+
+# SKMS Agent
+SYSTEM_DEBLOAT+="
+system/etc/permissions/privapp-permissions-com.skms.android.agent.xml
+system/priv-app/SKMSAgent
+"
+
+# SPPPushClient
+SYSTEM_DEBLOAT+="
+system/etc/permissions/privapp-permissions-com.sec.spp.push.xml
+system/priv-app/SPPPushClient
+"
+
+# Google Messages
+PRODUCT_DEBLOAT+="
+priv-app/Messages
+"
+
+# Stock GPU Driver
+SYSTEM_DEBLOAT+="
+system/priv-app/DevGPUDriver-EX2200
+system/priv-app/GameDriver-EX2200
 "
