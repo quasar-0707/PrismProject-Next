@@ -2,7 +2,7 @@ REPOSITORY="https://github.com/UN1CA/proprietary_vendor_samsung_exynos2100/relea
 TARS=(
     # t2sksx (kor_single)
     "G996NKSSCHZA9_KOO_OKR/BL_G996NKSSCHZA9_G996NKSSCHZA9_MQB107175103_REV01_user_low_ship_MULTI_CERT.tar.md5"
-    "G996NKOSCHZA5_CP32602497_MQB105441439_REV01_user_low_ship_MULTI_CERT.tar.md5"
+    "G996NKSSCHZA9_KOO_OKR/CP_G996NKOSCHZA5_CP32602497_MQB105441439_REV01_user_low_ship_MULTI_CERT.tar.md5"
 )
 
 for i in "${TARS[@]}"; do
