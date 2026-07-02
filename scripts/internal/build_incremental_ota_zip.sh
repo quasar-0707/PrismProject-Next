@@ -465,8 +465,8 @@ SOURCE_BUILD_INFO="$(cat "$TMP_DIR/source/build_info.txt")"
 TARGET_BUILD_INFO="$(cat "$TMP_DIR/target/build_info.txt")"
 
 TARGET_CODENAME="$(grep "^device" <<< "$TARGET_BUILD_INFO" | cut -d "=" -f 2 -s)"
-if [ ! -d "$SRC_DIR/target/$DEVICE" ]; then
-    LOGE "폴더가 존재하지 않습니다: target/$DEVICE"
+if [ ! -d "$SRC_DIR/target/$TARGET_CODENAME" ]; then
+    LOGE "폴더가 존재하지 않습니다: target/$TARGET_CODENAME"
     exit 1
 fi
 
