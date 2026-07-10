@@ -1,0 +1,5 @@
+id=vendor
+name=Vendor 패치
+author=Ocin4ever
+coauthor=ExtremeXT
+description=특정 HAL에 대한 벤더 백포트를 추가합니다.
