@@ -306,7 +306,6 @@ SET_FLOATING_FEATURE_CONFIG "SEC_FLOATING_FEATURE_COMMON_CONFIG_SMARTTUTOR_PACKA
 SYSTEM_DEBLOAT+="
 system/etc/permissions/privapp-permissions-com.wssyncmldm.xml
 system/priv-app/FotaAgent
-system/priv-app/SOAgent75
 "
 
 # SVC Agent
@@ -390,12 +389,6 @@ system/app/WifiGuider
 # CpAgent
 SYSTEM_DEBLOAT+="
 system/priv-app/CpAgent
-"
-
-# DiagMonAgent
-SYSTEM_DEBLOAT+="
-system/etc/permissions/privapp-permissions-com.sec.android.diagmonagent.xml
-system/priv-app/DiagMonAgent94
 "
 
 # EnhancedAttestationAgent
