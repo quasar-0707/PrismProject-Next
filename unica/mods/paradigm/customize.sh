@@ -70,10 +70,6 @@ APPLY_PATCH "system_ext" "priv-app/SystemUI/SystemUI.apk" \
     "$MODPATH/ead/SystemUI.apk/0001-Add-Adaptive-color-tone-toggle.patch"
 LOG_STEP_OUT
 
-# 더 밝게
-LOG_STEP_IN "- 더 밝게 기능 활성화 중..."
-SET_FLOATING_FEATURE_CONFIG "SEC_FLOATING_FEATURE_LCD_SUPPORT_EXTRA_BRIGHTNESS" "TRUE"
-
 # AI 버전을 20253으로 설정
 SET_FLOATING_FEATURE_CONFIG "SEC_FLOATING_FEATURE_COMMON_CONFIG_AI_VERSION" "20253"
 ADD_TO_WORK_DIR "pa2qxxx" "system" "system/app/SketchBook/SketchBook.apk" 0 0 644 "u:object_r:system_file:s0"
