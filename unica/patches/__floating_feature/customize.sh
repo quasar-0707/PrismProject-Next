@@ -2,7 +2,7 @@
 # - 더 이상 사용되지 않는 기능은 $DEPRECATED 변수에 추가하세요.
 # - 무시할 기능은 $BLACKLIST 변수에 추가하세요.
 # - 누락된 기능의 기본값은 $FALLBACK 변수에 추가하세요.
-# - 사용자 정의 항목을 제공하려면 target/$TARGET_CODENAME/sff.sh 파일을 사용하세요.
+# - 사용자 정의 기능을 제공하려면 target/$TARGET_CODENAME/sff.sh 파일에 추가하세요.
 
 DEPRECATED="
 SEC_FLOATING_FEATURE_AUDIO_CONFIG_FMRADIO_EXTERNAL_DEVICE
@@ -144,7 +144,7 @@ APPLY_TARGET_FEATURE()
     local SOURCE_VALUE
     local TARGET_VALUE
 
-    # 1단계: 작업 디렉터리의 floating_feature.xml 분석 및 순회
+    # 1. 작업 디렉터리의 floating_feature.xml 분석
     while IFS= read -r l; do
         if [ ! "$l" ] || [[ "$l" == *"xml"* ]] || [[ "$l" == *"SecFloatingFeatureSet"* ]]; then
             continue
@@ -174,7 +174,7 @@ APPLY_TARGET_FEATURE()
         fi
     done < "$SOURCE_FILE"
 
-    # 2단계: 타겟 기기의 floating_feature.xml 분석 및 순회
+    # 2. 타겟 디바이스의 floating_feature.xml 분석
     while IFS= read -r l; do
         if [ ! "$l" ] || [[ "$l" == *"xml"* ]] || [[ "$l" == *"SecFloatingFeatureSet"* ]]; then
             continue
@@ -216,7 +216,7 @@ APPLY_CUSTOM_FEATURE()
 }
 # ]
 
-LOG_STEP_IN "- 대상 기기의 floating_feature.xml 설정 적용 중"
+LOG_STEP_IN "- 타겟 디바이스의 floating_feature.xml 설정 적용 중"
 APPLY_TARGET_FEATURE
 LOG_STEP_OUT
 

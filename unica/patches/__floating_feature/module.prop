@@ -1,4 +1,4 @@
 id=floating_feature
 name=floating_feature.xml 패치
 author=salvogiangri
-description=소스 및 타겟 디바이스의 floating_feature.xml를 비교하고 필요한 경우 패치를 적용합니다.
+description=소스와 타겟 디바이스의 floating_feature.xml를 비교하고 필요한 경우 패치를 적용합니다.
