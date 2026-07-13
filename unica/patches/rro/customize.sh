@@ -24,7 +24,7 @@ while IFS= read -r f; do
             _LOG "폴더가 존재하지 않습니다: target/$TARGET_CODENAME/overlay"
             continue
         fi
-        LOG_STEP_IN "- Applying target product overlay"
+        LOG_STEP_IN "- 타겟 오버레이 적용 중..."
         EVAL "rm -rf \"$APKTOOL_DIR/product/overlay/${f//$SOURCE_PRODUCT_NAME/$TARGET_PRODUCT_NAME}/res\""
         EVAL "cp -a \"$SRC_DIR/target/$TARGET_CODENAME/overlay\" \"$APKTOOL_DIR/product/overlay/${f//$SOURCE_PRODUCT_NAME/$TARGET_PRODUCT_NAME}/res\""
         if [ "$(GET_FLOATING_FEATURE_CONFIG "SEC_FLOATING_FEATURE_LCD_SUPPORT_EXTRA_BRIGHTNESS")" ] && \

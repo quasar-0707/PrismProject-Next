@@ -1,4 +1,4 @@
 id=debloat
-name=블로트웨어 제거 목록
+name=블로트웨어 제거
 author=salvogiangri
-description=작업 디렉토리에 ROM/디바이스 전용 블로트웨어 제거 목록을 적용합니다.
+description=설정된 목록에 따라 작업 디렉토리에서 블로트웨어를 제거합니다.
